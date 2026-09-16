@@ -7,6 +7,7 @@ import { requireSuperAdmin, NotAuthorisedError } from "@/lib/auth/session";
 import { requireDb } from "@/lib/firebase/admin";
 import { COLLECTIONS, SETTINGS_DOC } from "@/lib/firebase/collections";
 import { rupeesToMinor } from "@/lib/utils/money";
+import { NEPAL_DISTRICTS, NEPAL_PROVINCES } from "@/config/nepal";
 
 /**
  * Every admin mutation.
@@ -193,7 +194,7 @@ export async function saveVariant(
       `${v.label} set to Rs. ${v.priceRupees} with ${v.stock} in stock.`,
       admin.email,
     );
-    revalidatePath("/admin/products");
+    revalidatePath("/admin/content");
     revalidatePath("/");
     return { ok: true };
   } catch (error) {
@@ -212,7 +213,7 @@ export async function setProductActive(
       active,
       updatedAt: FieldValue.serverTimestamp(),
     });
-    revalidatePath("/admin/products");
+    revalidatePath("/admin/content");
     revalidatePath("/");
     return { ok: true };
   } catch (error) {
@@ -253,7 +254,7 @@ export async function savePaymentMethod(
       .doc(id)
       .set({ ...rest, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
 
-    revalidatePath("/admin/payments");
+    revalidatePath("/admin/content");
     revalidatePath("/");
     return { ok: true };
   } catch (error) {
@@ -262,6 +263,7 @@ export async function savePaymentMethod(
 }
 
 const deliveryMethodSchema = z.object({
+  partnerId: z.string().regex(/^[a-zA-Z0-9_-]{1,120}$/).nullable().optional(),
   id: z.string().trim().min(1).max(60),
   name: z.string().trim().min(1).max(80),
   description: z.string().trim().max(240),
@@ -270,8 +272,8 @@ const deliveryMethodSchema = z.object({
   feeRupees: z.number().min(0).max(1_000_000),
   estimate: z.string().trim().max(60),
   sortOrder: z.number().int().min(0).max(999),
-  provinces: z.array(z.string().trim().max(40)).max(10),
-  districts: z.array(z.string().trim().max(40)).max(80),
+  provinces: z.array(z.enum(NEPAL_PROVINCES)).max(7),
+  districts: z.array(z.string().trim().refine(d => Object.values(NEPAL_DISTRICTS).flat().includes(d), "Choose a valid Nepal district.")).max(77),
   freeDeliveryThresholdRupees: z.number().min(0).max(10_000_000).nullable(),
   minimumOrderRupees: z.number().min(0).max(10_000_000).nullable(),
 });
@@ -295,6 +297,10 @@ export async function saveDeliveryMethod(
     } = parsed.data;
 
     const db = requireDb();
+    if (rest.partnerId) {
+      const company = await db.collection("partners").doc(rest.partnerId).get();
+      if (!company.exists || !company.data()?.active) return { ok: false, error: "Choose an active delivery company." };
+    }
     await db
       .collection(COLLECTIONS.deliveryMethods)
       .doc(id)
@@ -313,7 +319,7 @@ export async function saveDeliveryMethod(
         { merge: true },
       );
 
-    revalidatePath("/admin/delivery");
+    revalidatePath("/admin/content");
     revalidatePath("/");
     return { ok: true };
   } catch (error) {
@@ -324,6 +330,10 @@ export async function saveDeliveryMethod(
 /* -------------------------------------------------- content and settings */
 
 const settingsSchema = z.object({
+  heroImage: z.string().trim().max(1000).default(""),
+  introImage: z.string().trim().max(1000).default("/imagery/tmg-campaign.png"),
+  heroPrimaryCta: z.string().trim().min(1).max(80).default("Shop TMG Cleaner"),
+  heroSecondaryCta: z.string().trim().min(1).max(80).default("See the results"),
   announcement: z.string().trim().max(200),
   announcementEnabled: z.boolean(),
   heroEyebrow: z.string().trim().max(80),
@@ -363,6 +373,9 @@ export async function saveSettings(
           announcement: s.announcement || null,
           announcementEnabled: s.announcementEnabled,
           hero: {
+            image: s.heroImage,
+            primaryCta: s.heroPrimaryCta,
+            secondaryCta: s.heroSecondaryCta,
             eyebrow: s.heroEyebrow,
             // One line per row keeps the hero's line breaks in the editor's hands.
             headline: s.heroHeadline.split("\n").map((l) => l.trim()).filter(Boolean),
@@ -370,6 +383,7 @@ export async function saveSettings(
             support: s.heroSupport,
           },
           intro: {
+            image: s.introImage,
             eyebrow: s.introEyebrow,
             headline: s.introHeadline,
             body: s.introBody,
@@ -390,7 +404,7 @@ export async function saveSettings(
         { merge: true },
       );
 
-    revalidatePath("/admin/settings");
+    revalidatePath("/admin/content");
     revalidatePath("/");
     return { ok: true };
   } catch (error) {
@@ -564,7 +578,7 @@ export async function saveProductImages(
     });
 
     await audit(null, "product_images_updated", `Updated product imagery.`, admin.email);
-    revalidatePath("/admin/products");
+    revalidatePath("/admin/content");
     revalidatePath("/");
     return { ok: true };
   } catch (error) {

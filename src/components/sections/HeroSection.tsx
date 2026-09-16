@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { LinkButton, Arrow } from "@/components/ui/Button";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import type { SiteSettings } from "@/types";
 
 /** Product-led hero; on phones the bottle follows the headline. */
@@ -17,7 +17,7 @@ export function HeroSection({
   productName: string;
 }) {
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
   const hero = lang === "ne" ? t.hero : settings.hero;
 
   return (
@@ -88,44 +88,57 @@ export function HeroSection({
 
           {/* --------------------------------------------------- product */}
           <div className="hero-visual relative lg:col-span-6">
-            <div className="hero-stage relative mx-auto h-[19rem] w-full max-w-[32rem] sm:h-[clamp(23rem,44vw,36rem)] lg:max-w-none">
-              <span className="hero-stage-word" aria-hidden="true">TMG</span>
-              <div
-                aria-hidden="true"
-                className="hero-orbit"
-              />
-              <div
-                aria-hidden="true"
-                className="hero-stage-floor"
-              />
+            {settings.hero.image ? (
+              <div className="relative mx-auto aspect-[4/5] w-full max-w-[34rem] overflow-hidden rounded-[28px] bg-stone">
+                <Image
+                  src={settings.hero.image}
+                  alt={`${lang === "ne" ? t.product.name : productName}: product artwork with marble, tile and granite`}
+                  fill
+                  priority
+                  fetchPriority="high"
+                  sizes="(max-width: 639px) 92vw, (max-width: 1023px) 544px, 46vw"
+                  quality={90}
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="hero-stage relative mx-auto h-[19rem] w-full max-w-[32rem] sm:h-[clamp(23rem,44vw,36rem)] lg:max-w-none">
+                <span className="hero-stage-word" aria-hidden="true">TMG</span>
+                <div aria-hidden="true" className="hero-orbit" />
+                <div aria-hidden="true" className="hero-stage-floor" />
 
-              <div
-                data-hero-step={String(5 + hero.headline.length)}
-                data-hero-product
-                className="absolute bottom-[12%] left-1/2 h-[82%] -translate-x-1/2"
-              >
                 <div
-                  data-parallax="0.016"
-                  className="relative h-full aspect-[560/1488]"
+                  data-hero-step={String(5 + hero.headline.length)}
+                  data-hero-product
+                  className="absolute bottom-[12%] left-1/2 h-[82%] -translate-x-1/2"
                 >
-                  <Image
-                    src={productImage}
-                    alt={`${lang === "ne" ? t.product.name : productName} bottle`}
-                    fill
-                    priority
-                    fetchPriority="high"
-                    sizes="(max-width: 1023px) 46vw, 26vw"
-                    quality={90}
-                    className="product-shadow object-contain object-bottom"
-                  />
+                  <div data-parallax="0.016" className="relative h-full aspect-[560/1488]">
+                    <Image
+                      src={productImage}
+                      alt={`${lang === "ne" ? t.product.name : productName} bottle`}
+                      fill
+                      priority
+                      fetchPriority="high"
+                      sizes="(max-width: 1023px) 46vw, 26vw"
+                      quality={90}
+                      className="product-shadow object-contain object-bottom"
+                    />
+                  </div>
+                </div>
+
+                <div className="hero-surface-list">
+                  {(lang === "ne"
+                    ? ["मार्बल", "टायल", "ग्रेनाइट"]
+                    : ["Marble", "Tile", "Granite"]
+                  ).map((name) => (
+                    <span key={name}>
+                      <span aria-hidden="true">✓</span>
+                      {name}
+                    </span>
+                  ))}
                 </div>
               </div>
-              <div className="hero-surface-list">
-                {(lang === "ne" ? ["मार्बल", "टायल", "ग्रेनाइट"] : ["Marble", "Tile", "Granite"]).map((name) => (
-                  <span key={name}><span aria-hidden="true">✓</span>{name}</span>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

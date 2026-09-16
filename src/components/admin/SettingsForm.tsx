@@ -14,6 +14,10 @@ const AREA =
 
 export function SettingsForm({ settings }: { settings: SiteSettings }) {
   const [s, setS] = useState({
+    heroImage: settings.hero.image || "",
+    introImage: settings.intro.image || "/imagery/tmg-campaign.png",
+    heroPrimaryCta: settings.hero.primaryCta,
+    heroSecondaryCta: settings.hero.secondaryCta,
     announcement: settings.announcement ?? "",
     announcementEnabled: settings.announcementEnabled,
     heroEyebrow: settings.hero.eyebrow,
@@ -77,6 +81,10 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
 
       <Panel title="Hero">
         <div className="grid gap-4 p-5 lg:grid-cols-2">
+          <Field label="Hero image URL or uploaded path" className="lg:col-span-2"><input className={INPUT} value={s.heroImage} onChange={e => patch({ heroImage: e.target.value })} /><p className="mt-2 text-xs text-muted">Leave blank to show the branded TMG arch with the bottle. Enter a path to replace it with a single photograph.</p></Field>
+          <Field label="Primary button"><input className={INPUT} value={s.heroPrimaryCta} onChange={e => patch({ heroPrimaryCta: e.target.value })} /></Field>
+          <Field label="Secondary button"><input className={INPUT} value={s.heroSecondaryCta} onChange={e => patch({ heroSecondaryCta: e.target.value })} /></Field>
+          <Field label="Intro image URL or uploaded path" className="lg:col-span-2"><input className={INPUT} value={s.introImage} onChange={e => patch({ introImage: e.target.value })} /><p className="mt-2 text-xs text-muted">New image library: /imagery/tmg-campaign.png, /imagery/marble-interior.png, /imagery/granite-detail.png, /imagery/tile-interior.png</p></Field>
           <Field label="Eyebrow">
             <input className={INPUT} value={s.heroEyebrow} onChange={(e) => patch({ heroEyebrow: e.target.value })} />
           </Field>

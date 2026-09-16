@@ -77,6 +77,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     "Now delivering across Nepal. Cash on delivery available in supported areas.",
   announcementEnabled: true,
   hero: {
+    // Blank shows the branded TMG arch with the bottle. A path here replaces
+    // the whole composition with a single photograph.
+    image: "",
     eyebrow: "Marble . Tile . Granite",
     headline: ["Made for surfaces", "worth looking", "after."],
     body: "A powerful everyday cleaner formulated for marble, granite, tile, floors and driveways. Built to remove dirt, stains and stubborn marks while leaving surfaces clean and refreshed.",
@@ -85,6 +88,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     support: "For marble, granite, tile and everyday hard surfaces.",
   },
   intro: {
+    image: "/imagery/tmg-campaign.png",
     eyebrow: "One cleaner. Multiple surfaces.",
     headline: "Built for the surfaces that define your space.",
     body: "Stone and tile carry a room. They also take the most traffic, the most spills and the most cleaning. TMG Cleaner is made for that daily reality: one bottle that works across marble, granite and tile without asking you to keep a different product for every floor in the building.",
