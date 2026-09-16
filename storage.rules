@@ -1,0 +1,65 @@
+rules_version = '2';
+
+// =============================================================================
+// TMG Cleaner - Cloud Storage security rules
+//
+// Two kinds of file exist:
+//
+//   payment-proofs/  written by customers, read only by staff. Write once,
+//                    never readable or overwritable from a browser, so one
+//                    customer cannot read another customer's bank screenshot.
+//
+//   payment-qr/      written by staff, read by everyone, because the QR code
+//   product/         has to render at checkout.
+//   media/
+// =============================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.superAdmin == true;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/(png|jpeg|jpg|webp)');
+    }
+
+    function underSize(mb) {
+      return request.resource.size < mb * 1024 * 1024;
+    }
+
+    // --- customer payment evidence -----------------------------------------
+    match /payment-proofs/{orderId}/{fileName} {
+      // Read is staff only. The storefront never needs to read these back, and
+      // the admin views them through short-lived signed URLs minted server side.
+      allow read: if isSuperAdmin();
+
+      // Create only. No update and no delete means an uploaded screenshot
+      // cannot be swapped for a different one after staff have seen it.
+      allow create: if isImage() && underSize(5);
+      allow update, delete: if false;
+    }
+
+    // --- staff managed public assets ---------------------------------------
+    match /payment-qr/{fileName} {
+      allow read: if true;
+      allow write: if isSuperAdmin() && isImage() && underSize(3);
+    }
+
+    match /product/{fileName} {
+      allow read: if true;
+      allow write: if isSuperAdmin() && isImage() && underSize(8);
+    }
+
+    match /media/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSuperAdmin() && isImage() && underSize(8);
+    }
+
+    // --- catch all ----------------------------------------------------------
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

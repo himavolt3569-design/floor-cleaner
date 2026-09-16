@@ -1,0 +1,126 @@
+rules_version = '2';
+
+// =============================================================================
+// TMG Cleaner - Firestore security rules
+//
+// Posture: deny by default, and no client writes anywhere.
+//
+// Every write in this application goes through the Next.js server using the
+// Firebase Admin SDK, which bypasses these rules by design. That means these
+// rules exist to govern what an ordinary browser holding the public Firebase
+// config can do, and the answer is: read the storefront, nothing else.
+//
+// In particular a customer cannot edit a product, change a price, alter a
+// delivery fee, read another customer's order, or mark anything as paid,
+// because none of those documents are client writable and orders are not
+// client readable at all.
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- helpers ------------------------------------------------------------
+
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.superAdmin == true;
+    }
+
+    // --- public storefront content -----------------------------------------
+    // Readable by anyone. Written only by the server or a super admin.
+
+    match /products/{productId} {
+      allow read: if resource.data.active == true || isSuperAdmin();
+      allow write: if isSuperAdmin();
+
+      match /variants/{variantId} {
+        allow read: if true;
+        allow write: if isSuperAdmin();
+      }
+    }
+
+    match /siteSettings/{docId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    match /faqs/{faqId} {
+      allow read: if resource.data.active == true || isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    match /benefits/{id}    { allow read: if true; allow write: if isSuperAdmin(); }
+    match /surfaces/{id}    { allow read: if true; allow write: if isSuperAdmin(); }
+    match /steps/{id}       { allow read: if true; allow write: if isSuperAdmin(); }
+    match /comparisons/{id} { allow read: if true; allow write: if isSuperAdmin(); }
+
+    // Commercial configuration. Readable so the storefront can render the
+    // options, never writable from a browser.
+    match /paymentMethods/{id} {
+      allow read: if resource.data.enabled == true || isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    match /deliveryMethods/{id} {
+      allow read: if resource.data.enabled == true || isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    // --- orders and money ---------------------------------------------------
+    // Not readable or writable by any client, including a signed-in customer.
+    // Orders are created and read exclusively through the server, so an order
+    // id alone leaks nothing.
+
+    match /orders/{orderId} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    match /orderEvents/{eventId} {
+      allow read: if isSuperAdmin();
+      allow write: if false;            // audit trail: server only, append only
+    }
+
+    match /paymentTransactions/{id} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    match /customers/{customerId} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    match /discountCodes/{id} {
+      // Never readable: a client must not be able to enumerate codes.
+      allow read, write: if isSuperAdmin();
+    }
+
+    match /inventoryLogs/{id} {
+      allow read: if isSuperAdmin();
+      allow write: if false;
+    }
+
+    // --- server-only infrastructure ----------------------------------------
+    // Rate limit counters, idempotency keys and order number sequences must be
+    // completely invisible to clients or the protections they provide fail.
+
+    match /rateLimits/{id}       { allow read, write: if false; }
+    match /idempotencyKeys/{id}  { allow read, write: if false; }
+    match /counters/{id}         { allow read, write: if false; }
+    match /adminUsers/{id}       { allow read, write: if false; }
+
+    match /contactSubmissions/{id} {
+      allow read: if isSuperAdmin();
+      allow write: if false;            // submitted through the server
+    }
+
+    match /media/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    // --- catch all ----------------------------------------------------------
+    // Anything not named above is denied outright, including future
+    // collections someone adds without updating these rules.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

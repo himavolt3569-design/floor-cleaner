@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   TMG Cleaner - design tokens
+   Warm, earthy, editorial. Solid colour only: no gradients anywhere.
+   ========================================================================== */
+@theme {
+  /* --- Surfaces --------------------------------------------------------- */
+  --color-ivory: #f3faff;
+  --color-paper: #ffffff;
+  --color-stone: #d5f4ef;
+  --color-stone-deep: #a5e4df;
+
+  /* --- Ink -------------------------------------------------------------- */
+  --color-charcoal: #102d50;
+  --color-espresso: #103d73;
+  --color-muted: #50657b;
+  --color-faint: #667b91;
+
+  /* --- Accents ---------------------------------------------------------- */
+  --color-forest: #1554d1;
+  --color-forest-deep: #103da2;
+  --color-terracotta: #b93650;
+  --color-brass: #c9ee58;
+  /* Brass is a decorative tone: at label sizes it fails WCAG AA on both light
+     and dark grounds. These two are the text-safe variants. Use `brass` for
+     rules and ornament, `brass-ink` for text on light, `brass-light` on dark. */
+  --color-brass-ink: #14645e;
+  --color-brass-light: #d9f680;
+  --color-sage: #7bd8cf;
+
+  /* --- Feedback (never colour-only; always paired with text/icon) -------- */
+  --color-positive: #2f5d45;
+  --color-caution: #705626;
+  --color-critical: #8c3b2b;
+
+  /* --- Type ------------------------------------------------------------- */
+  /* Poppins throughout. Both tokens resolve to the same family so existing
+     `font-display` and `font-sans` classes keep working, and the distinction
+     now lives in size, weight and tracking rather than in two typefaces. */
+  --font-display: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Radii: rounded, soft, never fully pill except micro badges -------- */
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
+
+  /* --- Rhythm ----------------------------------------------------------- */
+  --spacing-section: clamp(3.5rem, 6vw, 6rem);
+  --spacing-gutter: clamp(1.25rem, 4vw, 3.5rem);
+
+  /* --- Motion ----------------------------------------------------------- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+@layer base {
+  * {
+    border-color: color-mix(in srgb, var(--color-charcoal) 12%, transparent);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  /* Lenis drives scrolling; native smooth would fight it. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  html.lenis {
+    scroll-behavior: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--color-ivory);
+    color: var(--color-charcoal);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-synthesis-weight: none;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    /* Poppins at 400 reads thin and generic once it is large. 600 gives the
+       headings the weight the serif used to carry through its contrast. */
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  p { text-wrap: pretty; }
+
+  /* Visible, branded focus ring on keyboard navigation only. */
+  :focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-brass);
+    color: var(--color-paper);
+  }
+
+  /* Numeric UI (prices, quantities, order numbers) must not wobble. */
+  .tabular { font-variant-numeric: tabular-nums; }
+}
+
+/* ==========================================================================
+   Typographic utilities
+   ========================================================================== */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: none;
+  line-height: 1.4;
+}
+
+@utility display-hero {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5.5vw, 5rem);
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+  font-weight: 600;
+}
+
+@utility display-section {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.7vw, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.032em;
+  font-weight: 600;
+}
+
+@utility display-sub {
+  font-family: var(--font-display);
+  font-size: clamp(1.125rem, 1.8vw, 1.5rem);
+  line-height: 1.24;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+}
+
+@utility lede {
+  font-size: clamp(1.0625rem, 1.15vw, 1.1875rem);
+  line-height: 1.68;
+  color: var(--color-muted);
+}
+
+@utility shell {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--spacing-gutter);
+}
+
+@utility hairline {
+  border-top: 1px solid color-mix(in srgb, var(--color-charcoal) 12%, transparent);
+}
+
+/* A soft, physical, non-glowing contact shadow for the product. */
+@utility product-shadow {
+  filter: drop-shadow(0 34px 34px rgba(30, 28, 25, 0.16))
+          drop-shadow(0 8px 10px rgba(30, 28, 25, 0.1));
+}
+
+/* ==========================================================================
+   Motion - every reveal degrades to "visible" without JS
+   ========================================================================== */
+@layer utilities {
+  [data-reveal] { will-change: transform, opacity; }
+
+  .js [data-reveal="fade-up"] { opacity: 0; transform: translate3d(0, 24px, 0); }
+  .js [data-reveal="fade"]    { opacity: 0; }
+  .js [data-reveal="mask"]    { clip-path: inset(0 0 100% 0); }
+
+  .no-js [data-reveal],
+  [data-reveal].is-revealed {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .js [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}
