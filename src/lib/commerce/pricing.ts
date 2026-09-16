@@ -8,6 +8,7 @@ import {
   DEFAULT_PRODUCT,
 } from "@/config/defaults";
 import { isValidMinor } from "@/lib/utils/money";
+import { methodServesDistrict } from "./service-zone";
 import type {
   DeliveryMethod,
   OrderItem,
@@ -145,7 +146,8 @@ export async function loadDeliveryMethods(): Promise<DeliveryMethod[]> {
     .where("enabled", "==", true)
     .get();
 
-  if (snap.empty) return DEFAULT_DELIVERY_METHODS.filter((m) => m.enabled);
+  // An empty enabled query means the administrator has disabled delivery.
+  if (snap.empty) return [];
 
   return snap.docs
     .map((d) => ({ id: d.id, ...(d.data() as Omit<DeliveryMethod, "id">) }))
@@ -162,7 +164,7 @@ export async function loadPaymentMethods(): Promise<PaymentMethod[]> {
     .where("enabled", "==", true)
     .get();
 
-  if (snap.empty) return DEFAULT_PAYMENT_METHODS.filter((m) => m.enabled);
+  if (snap.empty) return [];
 
   return snap.docs
     .map((d) => ({ id: d.id, ...(d.data() as Omit<PaymentMethod, "id">) }))
@@ -172,7 +174,9 @@ export async function loadPaymentMethods(): Promise<PaymentMethod[]> {
 /**
  * A method applies when its province list is empty (everywhere) or contains the
  * customer's province, and likewise for districts. Minimum order values are
- * enforced here too, so an ineligible option never reaches the UI.
+ * enforced here too, so an ineligible option never reaches the UI. A method
+ * that serves the wrong zone for the address is removed here rather than shown
+ * and left to the customer to interpret.
  */
 export function eligibleDeliveryMethods(
   methods: DeliveryMethod[],
@@ -182,6 +186,11 @@ export function eligibleDeliveryMethods(
 ): DeliveryMethod[] {
   return methods.filter((method) => {
     if (!method.enabled) return false;
+
+    // The zone rule: an address in the valley is never offered outside-valley
+    // delivery, and vice versa. Skipped until we know the district, because
+    // before that the customer is still filling the address in.
+    if (district && !methodServesDistrict(method, district)) return false;
 
     if (province && method.provinces?.length && !method.provinces.includes(province)) {
       return false;

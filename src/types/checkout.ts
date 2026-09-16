@@ -38,6 +38,8 @@ export interface QuoteResponse {
   items: QuoteItem[];
   subtotalMinor: number;
   deliveryMethods: QuoteDelivery[];
+  /** The option the checkout preselects. Null when only pickup is available. */
+  recommendedId: string | null;
   paymentMethods: QuotePayment[];
 }
 

@@ -8,6 +8,7 @@ import {
   loadPaymentMethods,
   resolveItems,
 } from "@/lib/commerce/pricing";
+import { recommendedDeliveryId } from "@/lib/commerce/service-zone";
 import { assertSameOrigin, clientIp, rateLimit } from "@/lib/utils/request-guard";
 import { errorResponse, noStore } from "@/lib/utils/api";
 
@@ -61,6 +62,10 @@ export async function POST(request: Request) {
         subtotalMinor >= (method.freeDeliveryThresholdMinor ?? Infinity),
     }));
 
+    const recommendedId = recommendedDeliveryId(
+      eligibleDeliveryMethods(allDelivery, subtotalMinor, province, district),
+    );
+
     // Gateways without server-side credentials are hidden rather than shown
     // and then failing at the last step.
     const payment = allPayment
@@ -95,6 +100,7 @@ export async function POST(request: Request) {
         })),
         subtotalMinor: totals.subtotalMinor,
         deliveryMethods: delivery,
+        recommendedId,
         paymentMethods: payment,
       },
       { headers: noStore },
