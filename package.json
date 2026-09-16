@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typegen": "next typegen",
     "seed": "node --env-file-if-exists=.env.local scripts/seed.ts",
     "create-admin": "node --env-file-if-exists=.env.local scripts/create-admin.ts",
@@ -38,7 +40,8 @@
     "eslint-config-next": "16.3.5",
     "playwright": "^1.63.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   },
   "packageManager": "pnpm@11.22.0",
   "description": "TMG Cleaner storefront and admin"
