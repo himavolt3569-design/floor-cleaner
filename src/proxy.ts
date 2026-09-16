@@ -67,7 +67,9 @@ export function proxy(request: NextRequest) {
   response.headers.set("referrer-policy", "strict-origin-when-cross-origin");
   response.headers.set(
     "permissions-policy",
-    "camera=(), microphone=(), geolocation=(self), interest-cohort=(), payment=()",
+    // interest-cohort is deliberately absent: FLoC was withdrawn, and naming a
+    // feature the browser no longer knows makes it reject the whole header.
+    "camera=(), microphone=(), geolocation=(self), payment=()",
   );
   response.headers.set("cross-origin-opener-policy", "same-origin");
   response.headers.set("x-dns-prefetch-control", "off");
