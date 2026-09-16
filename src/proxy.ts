@@ -67,7 +67,7 @@ export function proxy(request: NextRequest) {
   response.headers.set("referrer-policy", "strict-origin-when-cross-origin");
   response.headers.set(
     "permissions-policy",
-    "camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=()",
+    "camera=(), microphone=(), geolocation=(self), interest-cohort=(), payment=()",
   );
   response.headers.set("cross-origin-opener-policy", "same-origin");
   response.headers.set("x-dns-prefetch-control", "off");

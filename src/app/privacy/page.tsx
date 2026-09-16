@@ -20,6 +20,7 @@ export default async function PrivacyPage() {
       </p>
 
       <h2>What we collect</h2>
+      <p>If you choose “Use my current location” at checkout, your browser asks for permission. Coordinates are sent to OpenStreetMap’s Nominatim service to find an address. We do not save the coordinates in your order. You can enter your address manually instead, and you should review any automatically filled fields.</p>
       <p>When you place an order we ask for:</p>
       <ul>
         <li>Your name and mobile number, so the courier can reach you.</li>

@@ -2,6 +2,7 @@
 
 import { Input, Select, Textarea } from "@/components/ui/Field";
 import { NEPAL_DISTRICTS, NEPAL_PROVINCES, type NepalProvince } from "@/config/nepal";
+import { LocationFill } from "./LocationFill";
 
 export interface AddressState {
   fullName: string;
@@ -43,7 +44,9 @@ export function AddressForm({
     : [];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div>
+      <LocationFill onChange={onChange} />
+      <div className="grid gap-4 sm:grid-cols-2">
       <Input
         label="Full name"
         required
@@ -85,7 +88,7 @@ export function AddressForm({
         value={value.province}
         error={errors.province}
         // Changing province invalidates the district beneath it.
-        onChange={(e) => onChange({ province: e.target.value, district: "" })}
+        onChange={(e) => onChange({ province: e.target.value, district: "", municipality: "", ward: "", area: "", street: "" })}
       />
 
       <Select
@@ -96,7 +99,7 @@ export function AddressForm({
         options={districts.map((d) => ({ value: d, label: d }))}
         value={value.district}
         error={errors.district}
-        onChange={(e) => onChange({ district: e.target.value })}
+        onChange={(e) => onChange({ district: e.target.value, municipality: "", ward: "", area: "", street: "" })}
       />
 
       <Input
@@ -145,6 +148,7 @@ export function AddressForm({
         error={errors.notes}
         onChange={(e) => onChange({ notes: e.target.value })}
       />
+      </div>
     </div>
   );
 }
