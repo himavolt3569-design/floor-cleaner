@@ -12,8 +12,33 @@ export type OrderStatus =
   | "processing"
   | "packed"
   | "out_for_delivery"
+  | "delivery_failed"
   | "delivered"
-  | "cancelled";
+  | "cancellation_requested"
+  | "cancelled"
+  | "returned";
+
+/** Why a courier could not hand the parcel over. Fixed list plus a free note. */
+export type DeliveryFailureReason =
+  | "customer_unreachable"
+  | "address_not_found"
+  | "customer_refused"
+  | "payment_not_ready"
+  | "rescheduled_by_customer"
+  | "area_not_serviced"
+  | "damaged_in_transit"
+  | "other";
+
+export type CancellationState = "none" | "requested" | "approved" | "refused";
+
+export interface OrderCancellation {
+  state: CancellationState;
+  /** Who asked. An admin cancelling outright is recorded as "admin". */
+  requestedBy: "customer" | "admin" | null;
+  reason: string | null;
+  decidedBy: string | null;
+  decidedAt: string | null;
+}
 
 export type PaymentStatus =
   | "unpaid"
@@ -95,6 +120,7 @@ export interface PaymentMethod {
 }
 
 export interface DeliveryMethod {
+  partnerId?: string | null;
   id: string;
   kind: DeliveryKind;
   name: string;
@@ -159,6 +185,13 @@ export interface Order extends OrderTotals {
   deliveryEstimate: string;
   deliveryAddress: DeliveryAddress;
   orderStatus: OrderStatus;
+  /** Number of times a courier has attempted delivery. */
+  deliveryAttempts: number;
+  lastFailureReason: DeliveryFailureReason | null;
+  lastFailureNote: string | null;
+  cancellation: OrderCancellation | null;
+  /** Set once, when stock has been returned. Guards against double restocking. */
+  stockRestoredAt: string | null;
   customerNotes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -206,6 +239,7 @@ export interface ComparisonEntry {
 }
 
 export interface SiteSettings {
+  copyOverrides?: Record<string,string>;
   announcement: string | null;
   announcementEnabled: boolean;
   hero: {
@@ -215,8 +249,9 @@ export interface SiteSettings {
     primaryCta: string;
     secondaryCta: string;
     support: string;
+    image?: string;
   };
-  intro: { eyebrow: string; headline: string; body: string };
+  intro: { eyebrow: string; headline: string; body: string; image?: string };
   why: { headline: string; body: string[] };
   contact: {
     phone: string;

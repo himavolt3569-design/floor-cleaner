@@ -8,6 +8,7 @@ import { requireDb } from "@/lib/firebase/admin";
 import { COLLECTIONS, SETTINGS_DOC } from "@/lib/firebase/collections";
 import { rupeesToMinor } from "@/lib/utils/money";
 import { NEPAL_DISTRICTS, NEPAL_PROVINCES } from "@/config/nepal";
+import { ORDER_STATUSES } from "@/lib/commerce/order-status";
 
 /**
  * Every admin mutation.
@@ -55,16 +56,6 @@ async function audit(
 }
 
 /* ---------------------------------------------------------------- orders */
-
-const ORDER_STATUSES = [
-  "pending",
-  "confirmed",
-  "processing",
-  "packed",
-  "out_for_delivery",
-  "delivered",
-  "cancelled",
-] as const;
 
 const PAYMENT_STATUSES = [
   "unpaid",

@@ -78,8 +78,11 @@ const ORDER_TONE: Record<OrderStatus, string> = {
   processing: "border-forest/30 bg-forest/10 text-forest",
   packed: "border-forest/30 bg-forest/10 text-forest",
   out_for_delivery: "border-brass/40 bg-brass/10 text-brass-ink",
+  delivery_failed: "border-critical/40 bg-critical/10 text-critical",
   delivered: "border-positive/35 bg-positive/10 text-positive",
+  cancellation_requested: "border-caution/45 bg-caution/14 text-caution",
   cancelled: "border-critical/35 bg-critical/8 text-critical",
+  returned: "border-charcoal/20 bg-charcoal/[0.05] text-muted",
 };
 
 const PAYMENT_TONE: Record<PaymentStatus, string> = {
@@ -97,8 +100,11 @@ export const ORDER_LABEL: Record<OrderStatus, string> = {
   processing: "Processing",
   packed: "Packed",
   out_for_delivery: "Out for delivery",
+  delivery_failed: "Delivery failed",
   delivered: "Delivered",
+  cancellation_requested: "Cancellation requested",
   cancelled: "Cancelled",
+  returned: "Returned",
 };
 
 export const PAYMENT_LABEL: Record<PaymentStatus, string> = {
