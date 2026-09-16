@@ -47,16 +47,16 @@ export default async function HomePage() {
           productImage={product.images[0]}
           productName={product.name}
         />
-        <IntroSection settings={settings} />
         <SurfaceSection surfaces={surfaces} />
         <BeforeAfterSection comparisons={comparisons} />
-        <BenefitsSection benefits={benefits} />
         <FeaturedProduct
           product={product}
           paymentMethods={paymentMethods}
           deliveryMethods={deliveryMethods}
         />
         <HowToUseSection steps={steps} usageNote={settings.usageNote} />
+        <BenefitsSection benefits={benefits} />
+        <IntroSection settings={settings} />
         <WhyTmgSection settings={settings} />
         <FinalCTA
           product={product}

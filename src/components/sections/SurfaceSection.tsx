@@ -65,7 +65,7 @@ export function SurfaceSection({ surfaces }: { surfaces: SurfaceEntry[] }) {
                 data-reveal-delay={(i * 0.07).toFixed(2)}
                 className="group"
               >
-                <div className="relative aspect-[5/4] overflow-hidden rounded-[22px] bg-stone">
+                <div className="surface-photo relative aspect-[3/2] overflow-hidden rounded-[22px] bg-stone">
                   <Image
                     src={surface.image as string}
                     alt={`${name} surface cleaned with TMG Cleaner`}
@@ -73,7 +73,7 @@ export function SurfaceSection({ surfaces }: { surfaces: SurfaceEntry[] }) {
                     sizes="(max-width: 639px) 92vw, (max-width: 1023px) 46vw, 31vw"
                     className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.035]"
                   />
-                  <span className="absolute left-4 top-4 rounded-[8px] bg-paper/92 px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-[0.16em] text-charcoal">
+                  <span className="absolute bottom-4 left-4 rounded-full bg-paper px-4 py-2 text-[0.875rem] font-semibold text-charcoal">
                     {name}
                   </span>
                 </div>

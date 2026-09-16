@@ -44,9 +44,9 @@ export function SiteHeader({ announcement }: { announcement: string | null }) {
   return (
     <>
       {announcement && (
-        <div className="relative z-50 bg-charcoal text-paper">
+        <div className="relative z-50 bg-forest text-paper">
           <div className="shell flex h-8 items-center justify-center">
-            <p className="truncate text-[0.6875rem] font-medium tracking-[0.06em] text-stone/90">
+            <p className="truncate text-[0.6875rem] font-medium tracking-[0.02em] text-paper">
               {announcement}
             </p>
           </div>
@@ -57,8 +57,8 @@ export function SiteHeader({ announcement }: { announcement: string | null }) {
         className={cn(
           "sticky top-0 z-50 transition-[height,background-color,border-color] duration-300 ease-out",
           scrolled
-            ? "h-[58px] border-b border-charcoal/12 bg-ivory"
-            : "h-[68px] border-b border-transparent bg-ivory/0",
+            ? "h-[68px] border-b border-charcoal/12 bg-paper"
+            : "h-[80px] border-b border-charcoal/8 bg-paper",
         )}
       >
         <div className="shell flex h-full items-center justify-between gap-6">
@@ -94,19 +94,19 @@ export function SiteHeader({ announcement }: { announcement: string | null }) {
             <button
               type="button"
               onClick={toggleLang}
-              className="inline-flex h-9 items-center gap-1 rounded-[10px] border border-charcoal/15 bg-paper/80 px-2.5 text-[0.75rem] font-semibold text-charcoal transition-all hover:border-forest/40 hover:bg-paper"
+              className="inline-flex h-11 items-center gap-1 rounded-[10px] border border-charcoal/15 bg-paper px-2.5 text-[0.75rem] font-semibold text-charcoal transition-colors hover:border-forest/40 hover:bg-ivory"
               aria-label={`Switch to ${lang === "en" ? "Nepali" : "English"}`}
               title={`Switch to ${lang === "en" ? "Nepali" : "English"}`}
             >
-              <span className={lang === "en" ? "font-bold text-forest" : "text-muted/70"}>EN</span>
+              <span className={lang === "en" ? "font-bold text-forest" : "text-muted"}>EN</span>
               <span className="text-charcoal/20">|</span>
-              <span className={lang === "ne" ? "font-bold text-forest" : "text-muted/70"}>नेपाली</span>
+              <span className={lang === "ne" ? "font-bold text-forest" : "text-muted"}>नेपाली</span>
             </button>
 
             <button
               type="button"
               onClick={openCart}
-              className="relative grid h-9 w-9 place-items-center rounded-[10px] text-charcoal transition-colors duration-200 hover:bg-charcoal/[0.06]"
+              className="relative grid h-11 w-11 place-items-center rounded-[10px] bg-ivory text-forest transition-colors duration-200 hover:bg-stone"
               aria-label={count ? `Open cart, ${count} items` : "Open cart"}
             >
               <svg viewBox="0 0 20 20" className="h-[18px] w-[18px]" aria-hidden="true">
@@ -128,7 +128,7 @@ export function SiteHeader({ announcement }: { announcement: string | null }) {
 
             <a
               href="#product"
-              className="hidden h-9 items-center rounded-[10px] bg-forest px-4 text-[0.8125rem] font-semibold text-paper transition-colors duration-200 hover:bg-forest-deep sm:inline-flex"
+              className="hidden h-11 items-center rounded-full bg-forest px-5 text-[0.8125rem] font-semibold text-paper transition-colors duration-200 hover:bg-forest-deep sm:inline-flex"
             >
               {t.nav.buyNow}
             </a>
@@ -136,7 +136,7 @@ export function SiteHeader({ announcement }: { announcement: string | null }) {
             <button
               type="button"
               onClick={openMenu}
-              className="grid h-9 w-9 place-items-center rounded-[10px] text-charcoal transition-colors duration-200 hover:bg-charcoal/[0.06] lg:hidden"
+              className="grid h-11 w-11 place-items-center rounded-[10px] text-charcoal transition-colors duration-200 hover:bg-charcoal/[0.06] lg:hidden"
               aria-label="Open menu"
             >
               <svg viewBox="0 0 20 20" className="h-[18px] w-[18px]" aria-hidden="true">

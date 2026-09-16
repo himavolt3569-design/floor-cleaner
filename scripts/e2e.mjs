@@ -13,6 +13,13 @@ const BASE = process.argv.includes("--base")
   ? process.argv[process.argv.indexOf("--base") + 1]
   : "http://localhost:3000";
 
+/**
+ * Placing an order writes a real document to whichever Firestore this app is
+ * pointed at, so the submit step is opt in. Without --submit the test drives
+ * the whole flow up to the final button and stops.
+ */
+const SUBMIT = process.argv.includes("--submit");
+
 const results = [];
 const check = (name, pass, detail = "") => {
   results.push({ name, pass, detail });
@@ -100,12 +107,18 @@ check(
 await modal.locator("#\\:r0\\:, input").first().fill("Test Customer").catch(() => {});
 await page.getByLabel("Full name").fill("Test Customer");
 await page.getByLabel("Mobile number").fill("9812345678");
+const quoted = () =>
+  page.waitForResponse(
+    (r) => r.url().includes("/api/checkout/quote") && r.status() === 200,
+    { timeout: 30_000 },
+  );
+
 await page.getByLabel("Province").selectOption("Bagmati");
 await page.waitForTimeout(300);
-await page.getByLabel("District").selectOption("Kathmandu");
+await Promise.all([quoted(), page.getByLabel("District").selectOption("Kathmandu")]);
 await page.getByLabel("Municipality or city").fill("Kathmandu");
 await page.getByLabel("Area or tole").fill("Thamel");
-await page.waitForTimeout(1400);
+await page.waitForTimeout(600);
 
 const withAddress = await modal.innerText();
 check(
@@ -127,7 +140,16 @@ check(
 await page.getByLabel("Province").selectOption("Gandaki");
 await page.waitForTimeout(300);
 await page.getByLabel("District").selectOption("Kaski");
-await page.waitForTimeout(1400);
+
+// Poll the rendered text rather than racing a network event: changing the
+// province and then the district each fire their own debounced quote, so
+// waiting on "a response" can resolve against the wrong one.
+await page
+  .waitForFunction(
+    () => !document.body.innerText.includes("Kathmandu Valley delivery"),
+    { timeout: 30_000 },
+  )
+  .catch(() => {});
 
 const outside = await modal.innerText();
 check(
@@ -137,18 +159,35 @@ check(
 
 /* ------------------------------------------------------- order attempt */
 
-await page.locator('button:has-text("Place order")').click();
-await page.waitForTimeout(2500);
+const placeOrder = page.locator('button:has-text("Place order")');
+check("the order button is reachable and enabled", await placeOrder.isEnabled());
 
-const afterSubmit = await modal.innerText();
-const hasFirebaseNotice = afterSubmit.includes("not connected to its database");
-const hasOrderNumber = /TMG-\d{4}-\d{4}/.test(afterSubmit);
+if (SUBMIT) {
+  await Promise.all([
+    page
+      .waitForResponse((r) => r.url().includes("/api/orders"), { timeout: 45_000 })
+      .catch(() => null),
+    placeOrder.click(),
+  ]);
+  // The confirmation renders after the response resolves.
+  await page.waitForTimeout(2500);
 
-check(
-  "order submit produces a clear outcome, not a blank state",
-  hasFirebaseNotice || hasOrderNumber,
-  hasOrderNumber ? "order created" : "firebase-unavailable message shown",
-);
+  const afterSubmit = await modal.innerText();
+  const hasFirebaseNotice = afterSubmit.includes("not connected to its database");
+  const hasOrderNumber = /TMG-\d{4}-\d{4}/.test(afterSubmit);
+
+  check(
+    "order submit produces a clear outcome, not a blank state",
+    hasFirebaseNotice || hasOrderNumber,
+    hasOrderNumber ? "real order created" : "firebase-unavailable message shown",
+  );
+} else {
+  console.log(
+    "SKIP  order submission (pass --submit to actually place one; it writes a real order)",
+  );
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(400);
+}
 
 /* ----------------------------------------------------------- a11y bits */
 

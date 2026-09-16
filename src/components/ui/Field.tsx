@@ -41,7 +41,7 @@ function Label({
     >
       {children}
       {required && (
-        <span className="ml-1 text-terracotta" aria-hidden="true">
+        <span className="ml-1 text-terracotta-ink" aria-hidden="true">
           *
         </span>
       )}

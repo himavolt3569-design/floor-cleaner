@@ -46,7 +46,7 @@ export function BenefitsSection({ benefits }: { benefits: Benefit[] }) {
           </div>
 
           <div className="lg:col-span-7">
-            <ol className="border-t border-charcoal/12">
+            <ul className="border-t border-charcoal/12">
               {benefits.map((benefit, i) => {
                 const title =
                   (lang === "ne" && t.benefits.items[benefit.id]?.title) ||
@@ -62,8 +62,8 @@ export function BenefitsSection({ benefits }: { benefits: Benefit[] }) {
                     data-reveal-delay={(i * 0.05).toFixed(2)}
                     className="group grid grid-cols-[2.75rem_1fr] items-start gap-x-4 border-b border-charcoal/12 py-7 transition-colors duration-300 sm:grid-cols-[3.5rem_1fr] sm:gap-x-6"
                   >
-                    <span className="tabular pt-1 text-[0.75rem] font-bold tracking-[0.12em] text-brass-ink">
-                      {String(i + 1).padStart(2, "0")}
+                    <span className="benefit-icon" aria-hidden="true">
+                      ✓
                     </span>
                     <div>
                       <h3 className="display-sub text-charcoal">{title}</h3>
@@ -74,7 +74,7 @@ export function BenefitsSection({ benefits }: { benefits: Benefit[] }) {
                   </li>
                 );
               })}
-            </ol>
+            </ul>
           </div>
         </div>
       </div>

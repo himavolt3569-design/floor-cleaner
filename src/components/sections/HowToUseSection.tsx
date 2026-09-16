@@ -61,7 +61,7 @@ export function HowToUseSection({
                 data-reveal-delay={(i * 0.07).toFixed(2)}
                 className="border-t border-charcoal/20 pt-6"
               >
-                <span className="tabular block font-display text-[2.75rem] leading-none tracking-[-0.03em] text-charcoal/55">
+                <span className="tabular block font-display text-[2.75rem] leading-none tracking-[-0.03em] text-terracotta">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <h3 className="mt-5 font-sans text-[1.0625rem] font-bold tracking-[-0.01em] text-charcoal">

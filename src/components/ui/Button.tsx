@@ -11,7 +11,7 @@ const VARIANTS: Record<Variant, string> = {
     "bg-transparent text-charcoal border border-charcoal/20 hover:border-charcoal/45 hover:bg-charcoal/[0.04]",
   dark: "bg-charcoal text-paper hover:bg-espresso",
   onDark:
-    "bg-paper text-charcoal hover:bg-stone border border-transparent disabled:bg-paper/50",
+    "bg-brass text-charcoal hover:bg-brass-light border border-transparent disabled:bg-paper/50",
   quiet:
     "bg-transparent text-charcoal hover:bg-charcoal/[0.05] border border-transparent",
 };
@@ -19,7 +19,7 @@ const VARIANTS: Record<Variant, string> = {
 const SIZES: Record<Size, string> = {
   sm: "h-9 px-4 text-[0.8125rem] rounded-[10px]",
   md: "h-11 px-5 text-[0.875rem] rounded-[12px]",
-  lg: "h-[52px] px-7 text-[0.9375rem] rounded-[14px]",
+  lg: "h-[54px] px-7 text-[0.9375rem] rounded-full",
 };
 
 const BASE =

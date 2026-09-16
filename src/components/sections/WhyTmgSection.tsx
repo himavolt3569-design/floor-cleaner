@@ -6,8 +6,11 @@ import { TRANSLATIONS } from "@/config/translations";
 import type { SiteSettings } from "@/types";
 
 /**
- * The brand beat. Dark espresso, a single large statement, and the stained
- * floor photograph held at the left edge as texture rather than proof.
+ * The brand beat, and the one place the page commits to a colour.
+ *
+ * Everything around it is a warm neutral, so a deep terracotta block here
+ * gives the scroll a chromatic moment and rhymes with the red on the bottle
+ * without competing with it.
  */
 export function WhyTmgSection({ settings }: { settings: SiteSettings }) {
   const { lang } = useLanguage();
@@ -18,7 +21,7 @@ export function WhyTmgSection({ settings }: { settings: SiteSettings }) {
       : settings.why;
 
   return (
-    <section className="relative overflow-hidden bg-espresso text-paper">
+    <section className="relative overflow-hidden bg-terracotta-deep text-paper">
       <div className="grid lg:grid-cols-12">
         <div className="relative min-h-[16rem] lg:col-span-5 lg:min-h-0">
           <div data-reveal="fade" className="absolute inset-0">
@@ -30,13 +33,13 @@ export function WhyTmgSection({ settings }: { settings: SiteSettings }) {
               className="object-cover"
             />
             {/* Flat tint, not a gradient: keeps the type legible over texture. */}
-            <div aria-hidden="true" className="absolute inset-0 bg-espresso/45" />
+            <div aria-hidden="true" className="absolute inset-0 bg-terracotta-deep/55" />
           </div>
         </div>
 
         <div className="lg:col-span-7">
           <div className="px-[var(--spacing-gutter)] py-[var(--spacing-section)] lg:pl-[clamp(2.5rem,5vw,5rem)] lg:pr-[clamp(2.5rem,7vw,7rem)]">
-            <p data-reveal="fade" className="eyebrow text-brass-light">
+            <p data-reveal="fade" className="eyebrow text-stone">
               {t.why.eyebrow}
             </p>
 

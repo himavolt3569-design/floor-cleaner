@@ -84,7 +84,7 @@ export function FeaturedProduct({
           <div className="lg:col-span-5">
             <div
               data-reveal="fade"
-              className="relative flex aspect-[4/5] items-end justify-center overflow-hidden rounded-[26px] bg-stone px-8 pb-8 pt-12"
+              className="product-display relative flex aspect-[4/5] items-end justify-center overflow-hidden rounded-[32px] px-8 pb-8 pt-12"
             >
               <div className="relative h-full w-full">
                 <Image
@@ -127,7 +127,7 @@ export function FeaturedProduct({
             <div
               data-reveal="fade-up"
               data-reveal-delay="0.13"
-              className="mt-9 border-t border-charcoal/12 pt-8"
+              className="product-purchase mt-8"
             >
               <ProductVariantSelector
                 variants={active}
