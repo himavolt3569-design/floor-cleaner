@@ -8,27 +8,24 @@ import { Notice, Panel } from "./ui";
 import { NEPAL_PROVINCES } from "@/config/nepal";
 import { minorToRupees } from "@/lib/utils/money";
 import type { DeliveryMethod } from "@/types";
+import type { Partner } from "@/types/partners";
+import type { NepalProvince } from "@/config/nepal";
 
 const INPUT =
   "h-10 w-full rounded-[9px] border border-charcoal/18 bg-paper px-3 text-[0.875rem] text-charcoal focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/18";
 
-export function DeliveryEditor({ methods }: { methods: DeliveryMethod[] }) {
+export function DeliveryEditor({ methods, partners = [] }: { methods: DeliveryMethod[]; partners?: Partner[] }) {
   const [message, setMessage] = useState<{ tone: "success" | "error"; text: string }>();
-
-  if (!methods.length) {
-    return (
-      <Notice tone="warn">
-        No delivery methods in Firestore yet. Run <code>pnpm seed</code> to create
-        the default set.
-      </Notice>
-    );
-  }
+  const [drafts, setDrafts] = useState<DeliveryMethod[]>([]);
+  const all = [...methods, ...drafts.filter(d => !methods.some(m => m.id === d.id))];
 
   return (
     <div className="space-y-5">
+      <Button onClick={() => setDrafts(d => [...d, { id: crypto.randomUUID(), name: "New delivery option", kind: "home", description: "", estimate: "", feeMinor: 0, enabled: false, sortOrder: all.length, provinces: [], districts: [], minimumOrderMinor: null, freeDeliveryThresholdMinor: null, partnerId: null }])}>Add delivery option</Button>
+      <p className="text-sm text-muted">Create, price, reorder or disable delivery options here. Assign a company to link new orders to its reports.</p>
       {message && <Notice tone={message.tone}>{message.text}</Notice>}
-      {methods.map((m) => (
-        <MethodCard key={m.id} method={m} onDone={setMessage} />
+      {all.map((m) => (
+        <MethodCard key={m.id} method={m} partners={partners} onDone={setMessage} />
       ))}
     </div>
   );
@@ -36,12 +33,17 @@ export function DeliveryEditor({ methods }: { methods: DeliveryMethod[] }) {
 
 function MethodCard({
   method,
+  partners,
   onDone,
 }: {
   method: DeliveryMethod;
+  partners: Partner[];
   onDone: (m: { tone: "success" | "error"; text: string }) => void;
 }) {
   const [state, setState] = useState({
+    kind: method.kind,
+    sortOrder: method.sortOrder,
+    partnerId: method.partnerId ?? "",
     name: method.name,
     description: method.description ?? "",
     estimate: method.estimate ?? "",
@@ -68,8 +70,9 @@ function MethodCard({
     start(async () => {
       const result = await saveDeliveryMethod({
         id: method.id,
-        kind: method.kind,
-        sortOrder: method.sortOrder ?? 0,
+        kind: state.kind,
+        sortOrder: Number(state.sortOrder),
+        partnerId: state.partnerId || null,
         name: state.name,
         description: state.description,
         estimate: state.estimate,
@@ -79,7 +82,7 @@ function MethodCard({
           state.freeThreshold === "" ? null : Number(state.freeThreshold),
         minimumOrderRupees:
           state.minimumOrder === "" ? null : Number(state.minimumOrder),
-        provinces: state.provinces,
+        provinces: state.provinces as NepalProvince[],
         districts: state.districts
           .split(",")
           .map((d) => d.trim())
@@ -104,6 +107,9 @@ function MethodCard({
   return (
     <Panel title={method.name}>
       <div className="grid gap-4 p-5 lg:grid-cols-3">
+        <Field label="Delivery company"><select className={INPUT} value={state.partnerId} onChange={e => patch({ partnerId: e.target.value })}><option value="">Own delivery / no company</option>{partners.map(p => <option key={p.id} value={p.id}>{p.name}{p.active ? "" : " (inactive)"}</option>)}</select></Field>
+        <Field label="Delivery type"><select className={INPUT} value={state.kind} onChange={e => patch({ kind: e.target.value as DeliveryMethod['kind'] })}>{['home','valley','outside_valley','pickup','same_day'].map(k => <option key={k}>{k}</option>)}</select></Field>
+        <Field label="Display order"><input type="number" min="0" max="999" className={INPUT} value={state.sortOrder} onChange={e => patch({ sortOrder: Number(e.target.value) })}/></Field>
         <Field label="Name">
           <input className={INPUT} value={state.name} onChange={(e) => patch({ name: e.target.value })} />
         </Field>

@@ -109,6 +109,10 @@ export async function createOrder(
       productRefs.map(({ productRef }) => tx.get(productRef)),
     );
     const counterSnap = await tx.get(counterRef);
+    if (delivery.partnerId) {
+      const courier = await tx.get(db.collection("partners").doc(delivery.partnerId));
+      if (!courier.exists || !courier.data()?.active) throw new CommerceError("This courier is unavailable. Choose another delivery option.", "delivery_unavailable");
+    }
 
     const items: OrderItem[] = [];
 
@@ -219,6 +223,10 @@ export async function createOrder(
       paymentReference: null,
       paymentProofUrl: null,
       deliveryMethodId: delivery.id,
+      salesPartnerId: null,
+      courierPartnerId: delivery.partnerId ?? null,
+      externalReference: "",
+      trackingNumber: "",
       deliveryMethodName: delivery.name,
       deliveryEstimate: delivery.estimate,
       deliveryAddress: input.address,
