@@ -28,7 +28,7 @@ function useOverlayBehaviour(open: boolean, onClose: () => void) {
 
     const panel = panelRef.current;
     const first = panel?.querySelector<HTMLElement>(FOCUSABLE);
-    (first ?? panel)?.focus();
+    (first ?? panel)?.focus({ preventScroll: true });
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -61,7 +61,7 @@ function useOverlayBehaviour(open: boolean, onClose: () => void) {
       document.removeEventListener("keydown", onKeyDown, true);
       document.body.style.overflow = overflow;
       document.body.style.paddingRight = paddingRight;
-      restoreRef.current?.focus?.();
+      restoreRef.current?.focus?.({ preventScroll: true });
     };
   }, [open, onClose]);
 
@@ -102,7 +102,7 @@ export function Drawer({ open, onClose, title, header, children, footer }: BaseP
   if (!mounted || !open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[80]">
+    <div data-lenis-prevent className="fixed inset-0 z-[80] overscroll-none">
       <button
         type="button"
         aria-label="Close"
@@ -156,7 +156,7 @@ export function Modal({
   if (!mounted || !open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[90] flex items-end justify-center sm:items-center sm:p-6">
+    <div data-lenis-prevent className="fixed inset-0 z-[90] flex items-end justify-center overscroll-none sm:items-center sm:p-6">
       <button
         type="button"
         aria-label="Close"

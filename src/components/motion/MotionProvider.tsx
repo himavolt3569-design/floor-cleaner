@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useUi } from "@/lib/store/ui";
 
 /**
  * The single motion controller for the storefront.
@@ -77,6 +78,13 @@ export function MotionProvider() {
         smoothWheel: true,
         syncTouch: false,
       });
+
+      const syncOverlay = () => {
+        if (useUi.getState().surface) lenis.stop();
+        else lenis.start();
+      };
+      syncOverlay();
+      const unsubscribeOverlay = useUi.subscribe(syncOverlay);
 
       lenis.on("scroll", ScrollTrigger.update);
 
@@ -207,6 +215,7 @@ export function MotionProvider() {
       window.addEventListener("load", onLoad);
 
       cleanup = () => {
+        unsubscribeOverlay();
         document.removeEventListener("click", onNavClick);
         window.removeEventListener("load", onLoad);
         if (onPointerMove) window.removeEventListener("pointermove", onPointerMove);
