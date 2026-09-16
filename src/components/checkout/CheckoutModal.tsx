@@ -33,6 +33,7 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
   const [address, setAddress] = useState<AddressState>(EMPTY_ADDRESS);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [deliveryMethods, setDeliveryMethods] = useState<QuoteDelivery[]>([]);
+  const [recommendedId, setRecommendedId] = useState<string | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<QuotePayment[]>([]);
   const [subtotalMinor, setSubtotalMinor] = useState(0);
   const [deliveryId, setDeliveryId] = useState("");
@@ -66,7 +67,7 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
   );
 
   /* ------------------------------------------------------------- quoting */
-  const fetchQuote = useCallback(async () => {
+  const fetchQuote = useCallback(async (signal: AbortSignal) => {
     if (!items.length) return;
 
     setQuoting(true);
@@ -74,6 +75,7 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
 
     try {
       const res = await fetch("/api/checkout/quote", {
+        signal,
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -84,16 +86,19 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
       });
 
       const data = (await res.json()) as QuoteResponse | ApiError;
+      if (signal.aborted) return;
 
       if (!res.ok || !data.ok) {
         setQuoteError((data as ApiError).error ?? "We could not price your cart.");
         setDeliveryMethods([]);
         setPaymentMethods([]);
+        setRecommendedId(null);
         return;
       }
 
       setSubtotalMinor(data.subtotalMinor);
       setDeliveryMethods(data.deliveryMethods);
+      setRecommendedId(data.recommendedId);
       setPaymentMethods(data.paymentMethods);
 
       // Keep the current choice when it is still offered, otherwise pick the
@@ -101,7 +106,7 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
       setDeliveryId((current) =>
         data.deliveryMethods.some((m) => m.id === current)
           ? current
-          : (data.deliveryMethods[0]?.id ?? ""),
+          : (data.recommendedId ?? data.deliveryMethods[0]?.id ?? ""),
       );
       setPaymentId((current) =>
         data.paymentMethods.some((m) => m.id === current)
@@ -109,13 +114,14 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
           : (data.paymentMethods[0]?.id ?? ""),
       );
     } catch {
+      if (signal.aborted) return;
       setQuoteError(
         typeof navigator !== "undefined" && !navigator.onLine
           ? "You appear to be offline. Reconnect and we will price your order."
           : "We could not reach the server. Please try again.",
       );
     } finally {
-      setQuoting(false);
+      if (!signal.aborted) setQuoting(false);
     }
   }, [items, address.province, address.district]);
 
@@ -123,8 +129,9 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
     if (!open) return;
     nextKey();
     if (!items.length) return;
-    const timer = setTimeout(fetchQuote, 250);
-    return () => clearTimeout(timer);
+    const controller = new AbortController();
+    const timer = setTimeout(() => fetchQuote(controller.signal), 250);
+    return () => { clearTimeout(timer); controller.abort(); };
   }, [open, items.length, fetchQuote]);
 
   // Reset for a fresh checkout once the modal has closed after a finished order.
@@ -238,13 +245,16 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
           </button>
         </div>
       ) : (
-        <div className="grid gap-8 px-5 py-6 sm:px-6 lg:grid-cols-[1fr_20rem] lg:gap-10">
+        <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[1fr_19rem]">
           <div className="space-y-9">
             <Section title="Delivery details" step={1}>
               <AddressForm
                 value={address}
                 errors={fieldErrors}
-                onChange={(patch) => setAddress((a) => ({ ...a, ...patch }))}
+                onChange={(patch) => {
+                  if (patch.province !== undefined || patch.district !== undefined) { setDeliveryId(""); setDeliveryMethods([]); }
+                  setAddress((a) => ({ ...a, ...patch }));
+                }}
               />
             </Section>
 
@@ -254,6 +264,8 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
                 selectedId={deliveryId}
                 onSelect={setDeliveryId}
                 addressReady={addressReady}
+                recommendedId={recommendedId}
+                district={address.district}
               />
             </Section>
 
@@ -266,7 +278,7 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
             </Section>
           </div>
 
-          <div className="lg:sticky lg:top-4 lg:self-start">
+          <div className="rounded-2xl border border-charcoal/10 bg-paper p-5 lg:sticky lg:top-4 lg:self-start">
             <OrderSummary
               lines={lines}
               subtotalMinor={subtotalMinor || fallbackSubtotal(lines)}
@@ -323,7 +335,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section>
+    <section className="rounded-2xl border border-charcoal/10 bg-paper p-4 sm:p-5">
       <h3 className="mb-4 flex items-center gap-3">
         <span className="tabular grid h-6 w-6 shrink-0 place-items-center rounded-[7px] bg-charcoal text-[0.6875rem] font-bold text-paper">
           {step}

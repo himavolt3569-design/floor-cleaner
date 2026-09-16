@@ -17,7 +17,7 @@ function OptionRow({
   name: string;
   checked: boolean;
   onSelect: () => void;
-  title: string;
+  title: React.ReactNode;
   description?: string | null;
   trailing?: React.ReactNode;
   id: string;
@@ -60,11 +60,15 @@ export function DeliverySelector({
   selectedId,
   onSelect,
   addressReady,
+  recommendedId,
+  district,
 }: {
   methods: QuoteDelivery[];
   selectedId: string;
   onSelect: (id: string) => void;
   addressReady: boolean;
+  recommendedId: string | null;
+  district: string;
 }) {
   if (!addressReady) {
     return (
@@ -93,7 +97,18 @@ export function DeliverySelector({
           name="delivery"
           checked={selectedId === method.id}
           onSelect={() => onSelect(method.id)}
-          title={method.name}
+          title={
+            method.id === recommendedId && district ? (
+              <>
+                {method.name}
+                <span className="ml-2 rounded-[7px] bg-forest/12 px-2 py-0.5 text-[0.6875rem] font-semibold text-forest">
+                  Selected for {district}
+                </span>
+              </>
+            ) : (
+              method.name
+            )
+          }
           description={`${method.description} Estimated ${method.estimate.toLowerCase()}.`}
           trailing={
             <span className="tabular text-[0.875rem] font-semibold text-charcoal">
