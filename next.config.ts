@@ -22,8 +22,14 @@ const nextConfig: NextConfig = {
     qualities: [70, 75, 80, 82, 90],
   },
 
-  // Do not ship server-only Firebase Admin internals into any client bundle.
-  serverExternalPackages: ["firebase-admin"],
+  // firebase-admin is deliberately NOT listed in serverExternalPackages. Left
+  // external, it is require()d at runtime, and its jwks-rsa dependency does a
+  // CommonJS require of jose 6, which is ESM only. That throws ERR_REQUIRE_ESM
+  // inside a serverless function and takes down every route that imports it.
+  // Bundling it lets the compiler resolve that import properly.
+  //
+  // It cannot leak into a client bundle regardless: src/lib/firebase/admin.ts
+  // is marked "server-only".
 
   experimental: {
     optimizePackageImports: ["gsap", "lenis"],
