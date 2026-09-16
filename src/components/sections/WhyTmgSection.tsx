@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import type { SiteSettings } from "@/types";
 
 /**
@@ -14,7 +14,7 @@ import type { SiteSettings } from "@/types";
  */
 export function WhyTmgSection({ settings }: { settings: SiteSettings }) {
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
   const why =
     lang === "ne"
       ? { ...settings.why, headline: t.why.headline, body: t.why.body }

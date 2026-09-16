@@ -2,7 +2,7 @@
 
 import type { Benefit } from "@/types";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 
 /**
  * Benefits as an editorial numbered list rather than a grid of cards.
@@ -10,7 +10,7 @@ import { TRANSLATIONS } from "@/config/translations";
  */
 export function BenefitsSection({ benefits }: { benefits: Benefit[] }) {
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
 
   if (!benefits.length) return null;
 

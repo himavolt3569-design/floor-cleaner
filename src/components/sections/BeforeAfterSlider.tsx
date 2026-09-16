@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useId, useRef, useState } from "react";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import type { ComparisonEntry } from "@/types";
 
 /**
@@ -22,7 +22,7 @@ export function BeforeAfterSlider({
   priority?: boolean;
 }) {
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
   const [position, setPosition] = useState(50);
   const [dragging, setDragging] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);

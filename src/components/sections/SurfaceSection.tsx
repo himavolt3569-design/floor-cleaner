@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { surfaceImage } from "@/config/imagery";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import type { SurfaceEntry } from "@/types";
 
 /**
@@ -14,7 +15,7 @@ import type { SurfaceEntry } from "@/types";
  */
 export function SurfaceSection({ surfaces }: { surfaces: SurfaceEntry[] }) {
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
   const withPhoto = surfaces.filter((s) => s.image);
   const withoutPhoto = surfaces.filter((s) => !s.image);
 
@@ -67,8 +68,9 @@ export function SurfaceSection({ surfaces }: { surfaces: SurfaceEntry[] }) {
               >
                 <div className="surface-photo relative aspect-[3/2] overflow-hidden rounded-[22px] bg-stone">
                   <Image
-                    src={surface.image as string}
-                    alt={`${name} surface cleaned with TMG Cleaner`}
+                    src={surfaceImage(surface.image as string)}
+                    alt={`${name} surface illustration`}
+                    quality={90}
                     fill
                     sizes="(max-width: 639px) 92vw, (max-width: 1023px) 46vw, 31vw"
                     className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.035]"
@@ -85,6 +87,7 @@ export function SurfaceSection({ surfaces }: { surfaces: SurfaceEntry[] }) {
           })}
         </ul>
 
+        <p className="mt-4 text-xs text-muted">{lang === "ne" ? "सतहका चित्रहरू उदाहरणका लागि सिर्जना गरिएका हुन्।" : "AI-generated surface illustrations."}</p>
         {/* Surfaces the product covers that we do not hold photography for */}
         {withoutPhoto.length > 0 && (
           <ul className="mt-5 grid gap-5 sm:grid-cols-2">

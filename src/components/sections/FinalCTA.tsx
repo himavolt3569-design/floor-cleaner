@@ -7,7 +7,7 @@ import { QuantitySelector } from "@/components/commerce/QuantitySelector";
 import { useCart } from "@/lib/store/cart";
 import { useUi } from "@/lib/store/ui";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import { formatNpr } from "@/lib/utils/money";
 import type { DeliveryMethod, PaymentMethod, Product } from "@/types";
 
@@ -40,7 +40,7 @@ export function FinalCTA({
   const openCart = useUi((s) => s.openCart);
   const openCheckout = useUi((s) => s.openCheckout);
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
 
   const variant = active.find((v) => v.id === variantId) ?? defaultVariant;
   if (!variant) return null;

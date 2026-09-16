@@ -8,7 +8,7 @@ import { ProductVariantSelector } from "./ProductVariantSelector";
 import { useCart } from "@/lib/store/cart";
 import { useUi } from "@/lib/store/ui";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import { formatNpr } from "@/lib/utils/money";
 import type { DeliveryMethod, PaymentMethod, Product } from "@/types";
 
@@ -37,7 +37,7 @@ export function FeaturedProduct({
   const openCart = useUi((s) => s.openCart);
   const openCheckout = useUi((s) => s.openCheckout);
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
 
   const variant = active.find((v) => v.id === variantId) ?? firstInStock;
   if (!variant) return null;

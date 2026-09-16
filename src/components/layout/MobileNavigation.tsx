@@ -3,7 +3,7 @@
 import { NAV_LINKS } from "@/config/site";
 import { useUi } from "@/lib/store/ui";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import { Drawer } from "@/components/ui/Overlay";
 import { Wordmark } from "./Wordmark";
 
@@ -11,7 +11,7 @@ export function MobileNavigation() {
   const surface = useUi((s) => s.surface);
   const close = useUi((s) => s.close);
   const { lang, toggleLang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
 
   const navLabels: Record<string, string> = {
     "#product": t.nav.product,

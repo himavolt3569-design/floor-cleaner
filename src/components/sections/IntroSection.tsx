@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import type { SiteSettings } from "@/types";
 
 /**
@@ -12,7 +12,7 @@ import type { SiteSettings } from "@/types";
  */
 export function IntroSection({ settings }: { settings: SiteSettings }) {
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
   const intro = lang === "ne" ? t.intro : settings.intro;
 
   return (
@@ -49,8 +49,8 @@ export function IntroSection({ settings }: { settings: SiteSettings }) {
               className="relative ml-auto aspect-[4/5] w-full max-w-[26rem] overflow-hidden rounded-[24px] lg:max-w-none xl:aspect-[5/6]"
             >
               <Image
-                src="/lifestyle/stone-slabs.webp"
-                alt="Polished granite and marble slabs resting on a marble surface"
+                src={settings.intro.image || "/imagery/marble-interior.png"}
+                alt="Illustrative interior with polished marble flooring and granite surfaces"
                 fill
                 sizes="(max-width: 1023px) 90vw, 38vw"
                 className="object-cover"

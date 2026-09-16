@@ -18,6 +18,7 @@ import { FAQSection } from "@/components/sections/FAQSection";
 import { CartDrawer } from "@/components/commerce/CartDrawer";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
 import { MotionProvider } from "@/components/motion/MotionProvider";
+import { StoreCopyProvider } from "@/components/layout/StoreCopyProvider";
 
 export default async function HomePage() {
   const data = await getStorefrontData();
@@ -36,7 +37,7 @@ export default async function HomePage() {
   } = data;
 
   return (
-    <>
+    <StoreCopyProvider overrides={settings.copyOverrides}>
       <SiteHeader
         announcement={settings.announcementEnabled ? settings.announcement : null}
       />
@@ -83,7 +84,7 @@ export default async function HomePage() {
           __html: JSON.stringify(buildStructuredData(data)),
         }}
       />
-    </>
+    </StoreCopyProvider>
   );
 }
 

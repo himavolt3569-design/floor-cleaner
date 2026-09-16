@@ -2,7 +2,7 @@
 
 import type { DeliveryMethod, Faq, PaymentMethod } from "@/types";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import { FAQAccordion } from "./FAQAccordion";
 import { formatNpr } from "@/lib/utils/money";
 
@@ -21,7 +21,7 @@ export function FAQSection({
   paymentMethods: PaymentMethod[];
 }) {
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
 
   return (
     <section

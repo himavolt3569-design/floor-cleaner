@@ -1,8 +1,7 @@
 "use client";
 
 import type { ComparisonEntry } from "@/types";
-import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import { BeforeAfterSlider } from "./BeforeAfterSlider";
 
 /**
@@ -15,8 +14,7 @@ export function BeforeAfterSection({
 }: {
   comparisons: ComparisonEntry[];
 }) {
-  const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
 
   if (!comparisons.length) return null;
 

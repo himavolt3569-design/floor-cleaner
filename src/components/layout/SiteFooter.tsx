@@ -2,7 +2,7 @@
 
 import { Wordmark } from "./Wordmark";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import type { PaymentMethod, SiteSettings } from "@/types";
 
 const NAV_GROUPS = [
@@ -39,7 +39,7 @@ export function SiteFooter({
   paymentMethods: PaymentMethod[];
 }) {
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
   const year = new Date().getFullYear();
   const { contact } = settings;
 

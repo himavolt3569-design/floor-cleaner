@@ -5,7 +5,7 @@ import { NAV_LINKS } from "@/config/site";
 import { useCart } from "@/lib/store/cart";
 import { useUi } from "@/lib/store/ui";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import { cn } from "@/lib/utils/cn";
 import { Wordmark } from "./Wordmark";
 import { MobileNavigation } from "./MobileNavigation";
@@ -21,7 +21,7 @@ export function SiteHeader({ announcement }: { announcement: string | null }) {
   const lines = useCart((s) => s.lines);
   const hydrated = useCart((s) => s.hydrated);
   const { lang, toggleLang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
 
   const count = hydrated ? lines.reduce((n, l) => n + l.quantity, 0) : 0;
 

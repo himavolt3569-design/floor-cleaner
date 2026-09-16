@@ -3,7 +3,7 @@
 import { formatNpr } from "@/lib/utils/money";
 import { cn } from "@/lib/utils/cn";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import type { ProductVariant } from "@/types";
 
 /**
@@ -20,7 +20,7 @@ export function ProductVariantSelector({
   onSelect: (id: string) => void;
 }) {
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
 
   return (
     <fieldset>

@@ -87,8 +87,8 @@ export const getStorefrontData = cache(async (): Promise<StorefrontData> => {
       steps: listOr(stepsSnap, DEFAULT_STEPS, readStep),
       comparisons: listOr(comparisonsSnap, DEFAULT_COMPARISONS, readComparison),
       faqs: listOr(faqsSnap, DEFAULT_FAQS, readFaq),
-      paymentMethods: listOr(paymentsSnap, fallback.paymentMethods, readPayment),
-      deliveryMethods: listOr(deliverySnap, fallback.deliveryMethods, readDelivery),
+      paymentMethods: paymentsSnap.docs.map((d) => readPayment(d.id, d.data())).sort((a, b) => a.sortOrder - b.sortOrder),
+      deliveryMethods: deliverySnap.docs.map((d) => readDelivery(d.id, d.data())).sort((a, b) => a.sortOrder - b.sortOrder),
       live: true,
     };
   } catch (error) {
@@ -185,8 +185,10 @@ function readSettings(data: Doc): SiteSettings {
 
   return {
     announcement: optStr(data.announcement) ?? d.announcement,
+    copyOverrides: data.copyOverrides && typeof data.copyOverrides === "object" ? data.copyOverrides : {},
     announcementEnabled: bool(data.announcementEnabled, d.announcementEnabled),
     hero: {
+      image: str(hero.image, "/imagery/tmg-campaign.png"),
       eyebrow: str(hero.eyebrow, d.hero.eyebrow),
       headline: strArr(hero.headline, d.hero.headline),
       body: str(hero.body, d.hero.body),
@@ -195,6 +197,7 @@ function readSettings(data: Doc): SiteSettings {
       support: str(hero.support, d.hero.support),
     },
     intro: {
+      image: str(intro.image, "/imagery/marble-interior.png"),
       eyebrow: str(intro.eyebrow, d.intro.eyebrow),
       headline: str(intro.headline, d.intro.headline),
       body: str(intro.body, d.intro.body),
@@ -291,6 +294,7 @@ const readDelivery = (
 ): DeliveryMethod => ({
   id,
   kind: str(d.kind, "home") as DeliveryMethod["kind"],
+  partnerId: optStr(d.partnerId),
   name: str(d.name, id),
   description: str(d.description, ""),
   feeMinor: isValidMinor(d.feeMinor) ? (d.feeMinor as number) : 0,

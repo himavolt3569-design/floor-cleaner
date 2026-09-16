@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { useLanguage } from "@/lib/store/language";
-import { TRANSLATIONS } from "@/config/translations";
+import { useTranslations } from "@/components/layout/StoreCopyProvider";
 import type { Faq } from "@/types";
 
 /**
@@ -14,7 +14,7 @@ export function FAQAccordion({ faqs }: { faqs: Faq[] }) {
   const [openId, setOpenId] = useState<string | null>(faqs[0]?.id ?? null);
   const base = useId();
   const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+  const t = useTranslations();
 
   return (
     <div className="border-t border-charcoal/12">
