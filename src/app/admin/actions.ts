@@ -9,6 +9,8 @@ import { COLLECTIONS, SETTINGS_DOC } from "@/lib/firebase/collections";
 import { rupeesToMinor } from "@/lib/utils/money";
 import { NEPAL_DISTRICTS, NEPAL_PROVINCES } from "@/config/nepal";
 import { ORDER_STATUSES } from "@/lib/commerce/order-status";
+import { applyOrderTransition } from "@/lib/commerce/apply-transition";
+import { OrderTransitionError } from "@/lib/commerce/order-transition";
 
 /**
  * Every admin mutation.
@@ -32,6 +34,9 @@ async function guard() {
 }
 
 function fail(error: unknown): ActionResult {
+  if (error instanceof OrderTransitionError) {
+    return { ok: false, error: error.message };
+  }
   if (error instanceof NotAuthorisedError) {
     return { ok: false, error: "Your session has expired. Sign in again." };
   }
@@ -75,13 +80,41 @@ export async function updateOrderStatus(
     const parsed = z.enum(ORDER_STATUSES).safeParse(status);
     if (!parsed.success) return { ok: false, error: "Unknown order status." };
 
-    const db = requireDb();
-    await db.collection(COLLECTIONS.orders).doc(orderId).update({
-      orderStatus: parsed.data,
-      updatedAt: FieldValue.serverTimestamp(),
+    await applyOrderTransition({
+      orderId,
+      to: parsed.data,
+      actor: "admin",
+      actorLabel: admin.email ?? admin.uid,
     });
 
-    await audit(orderId, "status_changed", `Order marked ${parsed.data}.`, admin.email);
+    revalidatePath("/admin/orders");
+    return { ok: true };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/**
+ * Cancelling is not just a status: it returns stock, and a paid order becomes
+ * refunded for manual settlement. Both happen inside applyOrderTransition.
+ */
+export async function cancelOrder(
+  orderId: string,
+  reason: string,
+): Promise<ActionResult> {
+  try {
+    const admin = await guard();
+    const parsed = z.string().trim().max(500).safeParse(reason);
+    if (!parsed.success) return { ok: false, error: "That reason is too long." };
+
+    await applyOrderTransition({
+      orderId,
+      to: "cancelled",
+      actor: "admin",
+      actorLabel: admin.email ?? admin.uid,
+      reason: parsed.data,
+    });
+
     revalidatePath("/admin/orders");
     return { ok: true };
   } catch (error) {
@@ -106,21 +139,29 @@ export async function setPaymentStatus(
     const db = requireDb();
     const ref = db.collection(COLLECTIONS.orders).doc(orderId);
 
-    await db.runTransaction(async (tx) => {
+    const shouldConfirm = await db.runTransaction(async (tx) => {
       const snap = await tx.get(ref);
       if (!snap.exists) throw new Error("Order not found");
 
-      const update: Record<string, unknown> = {
+      tx.update(ref, {
         paymentStatus: parsed.data,
         updatedAt: FieldValue.serverTimestamp(),
-      };
+      });
 
-      // Confirming payment on a still-pending order also moves it forward.
-      if (parsed.data === "paid" && snap.data()?.orderStatus === "pending") {
-        update.orderStatus = "confirmed";
-      }
-      tx.update(ref, update);
+      // Confirming payment on a still-pending order also moves it forward, but
+      // that move belongs to the transition machine, not to this write.
+      return parsed.data === "paid" && snap.data()?.orderStatus === "pending";
     });
+
+    if (shouldConfirm) {
+      await applyOrderTransition({
+        orderId,
+        to: "confirmed",
+        actor: "admin",
+        actorLabel: admin.email ?? admin.uid,
+        reason: "Payment confirmed.",
+      });
+    }
 
     await audit(
       orderId,
