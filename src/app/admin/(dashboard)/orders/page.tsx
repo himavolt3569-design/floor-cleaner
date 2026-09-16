@@ -15,6 +15,9 @@ const FILTERS = [
   { label: "Processing", order: "processing", payment: undefined },
   { label: "Out for delivery", order: "out_for_delivery", payment: undefined },
   { label: "Delivered", order: "delivered", payment: undefined },
+  { label: "Delivery failed", order: "delivery_failed", payment: undefined },
+  { label: "Cancellation requested", order: "cancellation_requested", payment: undefined },
+  { label: "Returned", order: "returned", payment: undefined },
   { label: "Cancelled", order: "cancelled", payment: undefined },
 ] as const;
 

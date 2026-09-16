@@ -122,6 +122,85 @@ export async function cancelOrder(
   }
 }
 
+const FAILURE_REASONS = [
+  "customer_unreachable",
+  "address_not_found",
+  "customer_refused",
+  "payment_not_ready",
+  "rescheduled_by_customer",
+  "area_not_serviced",
+  "damaged_in_transit",
+  "other",
+] as const;
+
+/** Records a courier's failed attempt, with why, and counts the attempt. */
+export async function recordDeliveryFailure(
+  orderId: string,
+  reason: string,
+  note: string,
+): Promise<ActionResult> {
+  try {
+    const admin = await guard();
+    const parsed = z
+      .object({
+        reason: z.enum(FAILURE_REASONS),
+        note: z.string().trim().max(500),
+      })
+      .safeParse({ reason, note });
+
+    if (!parsed.success) return { ok: false, error: "Choose a failure reason." };
+
+    await applyOrderTransition({
+      orderId,
+      to: "delivery_failed",
+      actor: "admin",
+      actorLabel: admin.email ?? admin.uid,
+      failureReason: parsed.data.reason,
+      reason: parsed.data.note,
+    });
+
+    revalidatePath("/admin/orders");
+    return { ok: true };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/**
+ * Approving cancels and restocks. Refusing puts the parcel back on the road,
+ * which is why the order returns to out_for_delivery rather than its old state.
+ */
+export async function decideCancellationRequest(
+  orderId: string,
+  decision: "approve" | "refuse",
+  note: string,
+): Promise<ActionResult> {
+  try {
+    const admin = await guard();
+    const parsed = z
+      .object({
+        decision: z.enum(["approve", "refuse"]),
+        note: z.string().trim().max(500),
+      })
+      .safeParse({ decision, note });
+
+    if (!parsed.success) return { ok: false, error: "Choose approve or refuse." };
+
+    await applyOrderTransition({
+      orderId,
+      to: parsed.data.decision === "approve" ? "cancelled" : "out_for_delivery",
+      actor: "admin",
+      actorLabel: admin.email ?? admin.uid,
+      reason: parsed.data.note,
+    });
+
+    revalidatePath("/admin/orders");
+    return { ok: true };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
 /**
  * The only path that can mark a manual payment as paid, and it is admin-only
  * and audited. Nothing the customer does can reach this state.

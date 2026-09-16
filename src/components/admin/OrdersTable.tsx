@@ -2,12 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { setPaymentStatus, updateOrderStatus } from "@/app/admin/actions";
+import {
+  cancelOrder,
+  decideCancellationRequest,
+  recordDeliveryFailure,
+  setPaymentStatus,
+  updateOrderStatus,
+} from "@/app/admin/actions";
 import { formatNpr } from "@/lib/utils/money";
 import { formatNepaliMobile } from "@/config/nepal";
 import { Button } from "@/components/ui/Button";
-import { Notice, ORDER_LABEL, StatusChip } from "./ui";
-import type { Order, OrderStatus } from "@/types";
+import { DELIVERY_FAILURE_LABEL, Notice, ORDER_LABEL, StatusChip } from "./ui";
+import type { DeliveryFailureReason, Order, OrderStatus } from "@/types";
 
 const FLOW: OrderStatus[] = [
   "pending",
@@ -26,6 +32,12 @@ export function OrdersTable({
   proofUrls: Record<string, string>;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [failureFor, setFailureFor] = useState<string | null>(null);
+  const [failureReason, setFailureReason] =
+    useState<DeliveryFailureReason>("customer_unreachable");
+  const [failureNote, setFailureNote] = useState("");
+  const [cancelFor, setCancelFor] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -106,6 +118,11 @@ export function OrdersTable({
                       <Line label="Delivery" value={formatNpr(order.deliveryFeeMinor)} />
                       <Line label="Total" value={formatNpr(order.grandTotalMinor)} strong />
                     </dl>
+                    {order.stockRestoredAt && (
+                      <p className="mt-3 text-[0.75rem] text-muted">
+                        Stock returned to inventory.
+                      </p>
+                    )}
                   </div>
 
                   {/* Delivery */}
@@ -203,6 +220,47 @@ export function OrdersTable({
                   <h3 className="mb-3 text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-muted">
                     Order status
                   </h3>
+
+                  {order.cancellation?.state === "requested" && (
+                    <div className="mb-4 rounded-[12px] border border-caution/45 bg-caution/[0.06] p-4">
+                      <p className="text-[0.8125rem] font-semibold text-charcoal">
+                        The customer asked to cancel this order.
+                        {order.cancellation.reason
+                          ? ` Reason given: ${order.cancellation.reason}`
+                          : ""}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          disabled={pending}
+                          onClick={() =>
+                            run(() => decideCancellationRequest(order.id, "approve", ""))
+                          }
+                        >
+                          <span>Approve and return stock</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={pending}
+                          onClick={() =>
+                            run(() => decideCancellationRequest(order.id, "refuse", ""))
+                          }
+                        >
+                          <span>Refuse, continue delivery</span>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {order.lastFailureReason && (
+                    <p className="mb-3 text-[0.75rem] text-critical">
+                      Attempt {order.deliveryAttempts} failed:{" "}
+                      {DELIVERY_FAILURE_LABEL[order.lastFailureReason]}
+                      {order.lastFailureNote ? ` . ${order.lastFailureNote}` : ""}
+                    </p>
+                  )}
+
                   <div className="flex flex-wrap gap-2">
                     {FLOW.map((status) => (
                       <button
@@ -219,15 +277,130 @@ export function OrdersTable({
                         {ORDER_LABEL[status]}
                       </button>
                     ))}
+
+                    {order.orderStatus === "out_for_delivery" && (
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => {
+                          setCancelFor(null);
+                          setFailureFor(failureFor === order.id ? null : order.id);
+                        }}
+                        className="rounded-[9px] border border-caution/45 px-3 py-1.5 text-[0.75rem] font-semibold text-caution transition-colors hover:bg-caution/[0.08] disabled:cursor-not-allowed"
+                      >
+                        Delivery failed
+                      </button>
+                    )}
+
+                    {order.orderStatus === "delivery_failed" && (
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => run(() => updateOrderStatus(order.id, "returned"))}
+                        className="rounded-[9px] border border-charcoal/25 px-3 py-1.5 text-[0.75rem] font-semibold text-charcoal transition-colors hover:border-charcoal/45 disabled:cursor-not-allowed"
+                      >
+                        Returned to us
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       disabled={pending || order.orderStatus === "cancelled"}
-                      onClick={() => run(() => updateOrderStatus(order.id, "cancelled"))}
+                      onClick={() => {
+                        setFailureFor(null);
+                        setCancelFor(cancelFor === order.id ? null : order.id);
+                      }}
                       className="rounded-[9px] border border-critical/35 px-3 py-1.5 text-[0.75rem] font-semibold text-critical transition-colors hover:bg-critical/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Cancel
                     </button>
                   </div>
+
+                  {failureFor === order.id && (
+                    <div className="mt-4 rounded-[12px] border border-caution/35 bg-caution/[0.04] p-4">
+                      <label className="block text-[0.75rem] font-semibold text-charcoal">
+                        Why did the delivery fail?
+                        <select
+                          value={failureReason}
+                          onChange={(e) =>
+                            setFailureReason(e.target.value as DeliveryFailureReason)
+                          }
+                          className="mt-1.5 block h-10 w-full max-w-[24rem] rounded-[10px] border border-charcoal/18 bg-paper px-3 text-[0.8125rem] font-normal"
+                        >
+                          {(
+                            Object.keys(DELIVERY_FAILURE_LABEL) as DeliveryFailureReason[]
+                          ).map((reason) => (
+                            <option key={reason} value={reason}>
+                              {DELIVERY_FAILURE_LABEL[reason]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="mt-3 block text-[0.75rem] font-semibold text-charcoal">
+                        Note, optional
+                        <input
+                          value={failureNote}
+                          onChange={(e) => setFailureNote(e.target.value)}
+                          placeholder="What the courier reported"
+                          className="mt-1.5 block h-10 w-full rounded-[10px] border border-charcoal/18 bg-paper px-3 text-[0.8125rem] font-normal"
+                        />
+                      </label>
+                      <Button
+                        size="sm"
+                        className="mt-3"
+                        disabled={pending}
+                        onClick={() =>
+                          run(async () => {
+                            const result = await recordDeliveryFailure(
+                              order.id,
+                              failureReason,
+                              failureNote,
+                            );
+                            if (result.ok) {
+                              setFailureFor(null);
+                              setFailureNote("");
+                            }
+                            return result;
+                          })
+                        }
+                      >
+                        <span>Record failed delivery</span>
+                      </Button>
+                    </div>
+                  )}
+
+                  {cancelFor === order.id && (
+                    <div className="mt-4 rounded-[12px] border border-critical/35 bg-critical/[0.04] p-4">
+                      <p className="text-[0.75rem] font-semibold text-charcoal">
+                        Cancelling returns every item to stock. A paid order is marked
+                        refunded for you to settle by hand.
+                      </p>
+                      <input
+                        value={cancelReason}
+                        onChange={(e) => setCancelReason(e.target.value)}
+                        placeholder="Reason, kept on the order record"
+                        className="mt-3 block h-10 w-full rounded-[10px] border border-charcoal/18 bg-paper px-3 text-[0.8125rem]"
+                      />
+                      <Button
+                        size="sm"
+                        className="mt-3"
+                        disabled={pending}
+                        onClick={() =>
+                          run(async () => {
+                            const result = await cancelOrder(order.id, cancelReason);
+                            if (result.ok) {
+                              setCancelFor(null);
+                              setCancelReason("");
+                            }
+                            return result;
+                          })
+                        }
+                      >
+                        <span>Cancel this order</span>
+                      </Button>
+                    </div>
+                  )}
+
                   <p className="mt-3 text-[0.75rem] text-muted">
                     Placed {new Date(order.createdAt).toLocaleString("en-GB")}
                   </p>

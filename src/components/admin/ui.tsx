@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils/cn";
-import type { OrderStatus, PaymentStatus } from "@/types";
+import type { DeliveryFailureReason, OrderStatus, PaymentStatus } from "@/types";
 
 export function PageHeading({
   title,
@@ -105,6 +105,17 @@ export const ORDER_LABEL: Record<OrderStatus, string> = {
   cancellation_requested: "Cancellation requested",
   cancelled: "Cancelled",
   returned: "Returned",
+};
+
+export const DELIVERY_FAILURE_LABEL: Record<DeliveryFailureReason, string> = {
+  customer_unreachable: "Customer unreachable",
+  address_not_found: "Address not found",
+  customer_refused: "Customer refused the parcel",
+  payment_not_ready: "Customer could not pay",
+  rescheduled_by_customer: "Customer asked to reschedule",
+  area_not_serviced: "Area not serviced",
+  damaged_in_transit: "Damaged in transit",
+  other: "Other",
 };
 
 export const PAYMENT_LABEL: Record<PaymentStatus, string> = {
