@@ -66,6 +66,22 @@ silently.
 
 ---
 
+## Deploying
+
+The app runs on Vercel; Firebase keeps serving the data, auth, storage and the
+Cloud Functions in `functions/`. `vercel.ts` holds the project configuration.
+
+```bash
+vercel
+```
+
+The first deploy needs environment variables in place, the new origin added to
+Firebase's authorized domains, and the Vercel Toolbar switched off so it does
+not trip the CSP. [`docs/deployment.md`](docs/deployment.md) walks through all
+of it.
+
+---
+
 ## How money is handled
 
 This is the part worth reading carefully.
