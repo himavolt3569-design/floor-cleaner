@@ -28,6 +28,8 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
 
   const lines = useCart((s) => s.lines);
   const clearCart = useCart((s) => s.clear);
+  const setCartQuantity = useCart((s) => s.setQuantity);
+  const removeCartLine = useCart((s) => s.remove);
 
   const [phase, setPhase] = useState<Phase>("form");
   const [address, setAddress] = useState<AddressState>(EMPTY_ADDRESS);
@@ -284,6 +286,9 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
               subtotalMinor={subtotalMinor || fallbackSubtotal(lines)}
               deliveryFeeMinor={selectedDelivery?.feeMinor ?? null}
               pricing={quoting && !subtotalMinor}
+              editable
+              onQuantityChange={setCartQuantity}
+              onRemove={removeCartLine}
             />
 
             {quoteError && (

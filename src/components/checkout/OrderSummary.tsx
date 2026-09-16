@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { formatNpr } from "@/lib/utils/money";
 import { useLanguage } from "@/lib/store/language";
+import { QuantitySelector } from "@/components/commerce/QuantitySelector";
 import type { CartLine } from "@/types";
 
 export function OrderSummary({
@@ -11,12 +12,18 @@ export function OrderSummary({
   deliveryFeeMinor,
   discountMinor = 0,
   pricing,
+  editable = false,
+  onQuantityChange,
+  onRemove,
 }: {
   lines: CartLine[];
   subtotalMinor: number;
   deliveryFeeMinor: number | null;
   discountMinor?: number;
   pricing: boolean;
+  editable?: boolean;
+  onQuantityChange?: (variantId: string, quantity: number) => void;
+  onRemove?: (variantId: string) => void;
 }) {
   const { lang } = useLanguage();
   const grandTotal = subtotalMinor + (deliveryFeeMinor ?? 0) - discountMinor;
@@ -29,7 +36,7 @@ export function OrderSummary({
 
       <ul className="mt-4 space-y-3.5">
         {lines.map((line) => (
-          <li key={line.variantId} className="flex items-center gap-3">
+          <li key={line.variantId} className="flex items-start gap-3">
             <div className="relative h-12 w-9 shrink-0 overflow-hidden rounded-[8px] bg-stone">
               <Image src={line.image} alt="" fill sizes="36px" className="object-contain p-1" />
             </div>
@@ -37,9 +44,30 @@ export function OrderSummary({
               <p className="truncate text-[0.8125rem] font-semibold text-charcoal">
                 {line.name}
               </p>
-              <p className="tabular text-[0.75rem] text-muted">
-                {line.variantLabel} &times; {line.quantity}
-              </p>
+              {editable ? (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <QuantitySelector
+                    size="sm"
+                    value={line.quantity}
+                    onChange={(n) => onQuantityChange?.(line.variantId, n)}
+                    label={`Quantity for ${line.variantLabel}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => onRemove?.(line.variantId)}
+                    aria-label={`Remove ${line.name} ${line.variantLabel} from your order`}
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px] text-faint transition-colors hover:bg-charcoal/[0.06] hover:text-charcoal"
+                  >
+                    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
+                      <path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <p className="tabular text-[0.75rem] text-muted">
+                  {line.variantLabel} &times; {line.quantity}
+                </p>
+              )}
             </div>
             <span className="tabular shrink-0 text-[0.8125rem] font-semibold text-charcoal">
               {formatNpr(line.unitPriceMinor * line.quantity)}
