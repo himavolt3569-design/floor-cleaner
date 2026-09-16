@@ -23,8 +23,12 @@ function readServiceAccount() {
 
   if (!projectId || !clientEmail || !rawKey) return null;
 
+  // A key pasted into a dashboard field often still carries the quotes it
+  // needed in the .env file.
+  const unquoted = rawKey.replace(/^\s*["']|["']\s*$/g, "");
+
   // Platforms that store the key as a single line keep the newlines escaped.
-  const privateKey = rawKey.includes("\\n") ? rawKey.replace(/\\n/g, "\n") : rawKey;
+  const privateKey = unquoted.includes("\\n") ? unquoted.replace(/\\n/g, "\n") : unquoted;
 
   return { projectId, clientEmail, privateKey };
 }
@@ -47,11 +51,26 @@ export function getAdminApp(): App | null {
   const sa = readServiceAccount();
 
   if (sa) {
-    cached = initializeApp(
-      { credential: cert(sa), projectId: sa.projectId, storageBucket },
-      ADMIN_APP,
-    );
-    return cached;
+    // cert() rejects a malformed private key by throwing, and this is the one
+    // call in the module that is not already guarded. Letting it escape takes
+    // down every route that touches Firestore, including pages that would have
+    // been happy to render from the bundled defaults, so a broken key degrades
+    // to the same unconfigured state as an absent one.
+    try {
+      cached = initializeApp(
+        { credential: cert(sa), projectId: sa.projectId, storageBucket },
+        ADMIN_APP,
+      );
+      return cached;
+    } catch (error) {
+      console.error(
+        "[firebase-admin] Service account rejected, serving bundled defaults. " +
+          "FIREBASE_PRIVATE_KEY must keep its newlines written as \\n:",
+        error,
+      );
+      cached = null;
+      return cached;
+    }
   }
 
   // Application default credentials (Cloud Run, App Hosting, Functions).
