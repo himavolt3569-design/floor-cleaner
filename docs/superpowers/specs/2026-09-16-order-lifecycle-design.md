@@ -256,8 +256,9 @@ plaintext is never sent to the browser under any circumstance. Saving records a
 - **Checkout cart editing.** `OrderSummary` gains an `editable` mode with
   quantity steppers and a remove control bound to the cart store. Changing a
   quantity re-quotes. Removing the last line shows the existing empty state.
-  The add-to-cart buttons keep accumulating, which is correct for a shop, but
-  now open the cart drawer so the change is visible as it happens.
+  The add-to-cart buttons keep accumulating, which is correct for a shop, and
+  already open the cart drawer so the change is visible as it happens, so they
+  need no change.
 - **Hero.** Restore the arch stage, TMG wordmark and bottle composition from
   commit 7515de8. Its CSS is still present in `globals.css` and unused. The
   campaign image moves to the Intro section as the default for
