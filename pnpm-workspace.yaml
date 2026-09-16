@@ -4,3 +4,14 @@ allowBuilds:
   protobufjs: true
   sharp: false
   unrs-resolver: false
+
+# jwks-rsa, reached through firebase-admin/auth, does a CommonJS require of
+# jose. jose 6 is ESM only, so that require throws ERR_REQUIRE_ESM inside a
+# serverless function and every route importing firebase-admin answers 500.
+# Next externalises firebase-admin by default and offers no way to opt back
+# into bundling, so the dependency has to be the one that moves.
+#
+# 5.10.0 is the last release with a CommonJS build. jwks-rsa only calls
+# importJWK and exportSPKI, both of which exist unchanged in 5.x.
+overrides:
+  jose: 5.10.0
