@@ -1,29 +1,44 @@
 import { requireSuperAdmin } from "@/lib/auth/session";
-import { listComparisons, listContent, listFaqs } from "@/lib/data/admin";
+import { listComparisons, listContent, listFaqs, listProducts, listPaymentMethods, listDeliveryMethods } from "@/lib/data/admin";
+import { getStorefrontData } from "@/lib/data/storefront";
+import { SettingsForm } from "@/components/admin/SettingsForm";
+import { ProductsEditor } from "@/components/admin/ProductsEditor";
+import { PaymentsEditor } from "@/components/admin/PaymentsEditor";
+import { DeliveryEditor } from "@/components/admin/DeliveryEditor";
+import { ControlCenter } from "@/components/admin/ControlCenter";
+import { listPartners } from "@/lib/partners/data";
+import { CopyEditor } from "@/components/admin/CopyEditor";
 import { FaqEditor } from "@/components/admin/FaqEditor";
 import { ContentListEditor } from "@/components/admin/ContentListEditor";
 import { ComparisonsEditor } from "@/components/admin/ComparisonsEditor";
 import { PageHeading } from "@/components/admin/ui";
 
-export default async function AdminContentPage() {
+export default async function AdminContentPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   await requireSuperAdmin();
 
-  const [faqs, benefits, steps, surfaces, comparisons] = await Promise.all([
+  const [faqs, benefits, steps, surfaces, comparisons, products, payments, delivery, storefront, params, partners] = await Promise.all([
     listFaqs(),
     listContent("benefits"),
     listContent("steps"),
     listContent("surfaces"),
     listComparisons(),
+    listProducts(), listPaymentMethods(), listDeliveryMethods(), getStorefrontData(), searchParams, listPartners(),
   ]);
 
   return (
     <>
       <PageHeading
-        title="Content"
-        description="The editorial sections of the storefront. Everything here is read straight from Firestore, so no code change is needed to update the page."
+        title="Store control center"
+        description="Edit the website, imagery, products, delivery and payments in one place. Each editor saves independently."
       />
 
-      <div className="space-y-14">
+      <ControlCenter initial={params.tab} sections={[
+        { id: "copy", label: "Page copy & contact", content: <SettingsForm settings={storefront.settings} /> },
+        { id: "labels", label: "Labels & translations", content: <CopyEditor overrides={storefront.settings.copyOverrides} /> },
+        { id: "products", label: "Products & images", content: <ProductsEditor products={products} /> },
+        { id: "delivery", label: "Delivery", content: <DeliveryEditor methods={delivery} partners={partners} /> },
+        { id: "payments", label: "Payments", content: <PaymentsEditor methods={payments} /> },
+        { id: "sections", label: "Sections & FAQs", content: <div className="space-y-14">
         <ContentListEditor
           kind="benefits"
           items={benefits}
@@ -35,7 +50,7 @@ export default async function AdminContentPage() {
           kind="steps"
           items={steps}
           title="How to use"
-          description="The four steps. Dilution and application detail belongs in the manufacturer note on the Settings page, not invented here."
+          description="Application steps. Edit the manufacturer note in Page copy & contact."
         />
 
         <ContentListEditor
@@ -58,7 +73,8 @@ export default async function AdminContentPage() {
           </div>
           <FaqEditor faqs={faqs} />
         </section>
-      </div>
+      </div> },
+      ]} />
     </>
   );
 }

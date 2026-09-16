@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Notice, Panel } from "./ui";
 import { minorToRupees, formatNpr } from "@/lib/utils/money";
 import type { Product, ProductVariant } from "@/types";
+import { saveProductCopy } from "@/app/admin/content-actions";
 
 export function ProductsEditor({ products }: { products: Product[] }) {
   const [message, setMessage] = useState<{ tone: "success" | "error"; text: string }>();
@@ -40,6 +41,7 @@ export function ProductsEditor({ products }: { products: Product[] }) {
             />
           </div>
 
+          <ProductCopy product={product} onDone={setMessage} />
           <ul className="divide-y divide-charcoal/10">
             {product.variants.map((variant) => (
               <VariantRow
@@ -63,6 +65,15 @@ export function ProductsEditor({ products }: { products: Product[] }) {
 }
 
 type Notify = (m: { tone: "success" | "error"; text: string }) => void;
+
+function ProductCopy({ product, onDone }: { product: Product; onDone: Notify }) {
+  const [s,setS]=useState({id:product.id,name:product.name,shortDescription:product.shortDescription,description:product.description});
+  const [pending,start]=useTransition(); const router=useRouter();
+  return <form className="grid gap-3 border-b border-charcoal/10 p-5" onSubmit={e=>{e.preventDefault();start(async()=>{const r=await saveProductCopy(s);onDone({tone:r.ok?'success':'error',text:r.ok?'Product description saved.':r.error??'Could not save.'});if(r.ok)router.refresh();});}}>
+    {(['name','shortDescription','description'] as const).map(key=><label key={key} className="grid gap-1 text-xs text-muted">{{name:'Product name',shortDescription:'Short description',description:'Full description'}[key]}<textarea required rows={key==='description'?3:2} className="rounded-lg border bg-paper p-3 text-sm text-charcoal" value={s[key]} onChange={e=>setS({...s,[key]:e.target.value})}/></label>)}
+    <div><Button type="submit" disabled={pending}>Save product copy</Button></div>
+  </form>;
+}
 
 function ToggleActive({
   productId,

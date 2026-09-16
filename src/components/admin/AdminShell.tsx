@@ -10,11 +10,8 @@ import type { AdminUser } from "@/lib/auth/session";
 const NAV = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/orders", label: "Orders" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/payments", label: "Payments" },
-  { href: "/admin/delivery", label: "Delivery" },
-  { href: "/admin/content", label: "Content" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/content", label: "Store control center" },
+  { href: "/admin/partners", label: "Partners & reports" },
 ];
 
 export function AdminShell({
