@@ -115,6 +115,9 @@ export async function applyOrderTransition(
       orderId: input.orderId,
       orderNumber: data.orderNumber ?? null,
       type: plan.event.type,
+      // The customer timeline labels a status change from this, never from the
+      // message, which is staff text.
+      status: plan.status,
       message: plan.event.message,
       actor: input.actorLabel,
       createdAt: FieldValue.serverTimestamp(),
