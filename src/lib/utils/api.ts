@@ -2,6 +2,7 @@ import "server-only";
 
 import { NextResponse } from "next/server";
 import { CommerceError } from "@/lib/commerce/pricing";
+import { OrderTransitionError } from "@/lib/commerce/order-transition";
 import { GuardError } from "@/lib/utils/request-guard";
 import { FirebaseUnavailableError } from "@/lib/firebase/admin";
 
@@ -29,6 +30,14 @@ export function errorResponse(error: unknown) {
     return NextResponse.json(
       { ok: false, error: error.message, code: error.code },
       { status: error.status },
+    );
+  }
+
+  // A customer pressing cancel twice deserves "already cancelled", not a 500.
+  if (error instanceof OrderTransitionError) {
+    return NextResponse.json(
+      { ok: false, error: error.message, code: error.code },
+      { status: 409 },
     );
   }
 
