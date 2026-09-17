@@ -247,8 +247,8 @@ export function CheckoutModal({ settings }: { settings: SiteSettings }) {
           </button>
         </div>
       ) : (
-        <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[1fr_19rem]">
-          <div className="space-y-9">
+        <div className="grid grid-cols-1 gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
+          <div className="min-w-0 space-y-9">
             <Section title="Delivery details" step={1}>
               <AddressForm
                 value={address}
@@ -340,7 +340,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-charcoal/10 bg-paper p-4 sm:p-5">
+    <section className="min-w-0 rounded-2xl border border-charcoal/10 bg-paper p-4 sm:p-5">
       <h3 className="mb-4 flex items-center gap-3">
         <span className="tabular grid h-6 w-6 shrink-0 place-items-center rounded-[7px] bg-charcoal text-[0.6875rem] font-bold text-paper">
           {step}

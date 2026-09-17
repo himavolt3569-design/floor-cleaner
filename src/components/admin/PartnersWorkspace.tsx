@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, useTransition } from "react";
+import { Children, cloneElement, isValidElement, useId, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { savePartner, recordPartnerEntries, assignOrderPartners } from "@/app/admin/partner-actions";
 import { summarizeLedger, ENTRY_LABELS, csvCell } from "@/lib/partners/ledger";
@@ -10,7 +10,10 @@ import type { Partner, PartnerEntry, PartnerEntryKind, PartnerOrder } from "@/ty
 const inputClass = "w-full rounded-lg border border-charcoal/20 bg-paper px-3 py-2 text-sm";
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kathmandu" });
 const dateInNepal = (iso: string) => iso ? new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Kathmandu" }) : "";
-function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="grid gap-1.5 text-xs font-semibold text-muted">{label}{children}</label>; }
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const id=useId();
+  return <div className="grid gap-1.5 text-xs font-semibold text-muted"><label htmlFor={id}>{label}</label>{Children.map(children, child => isValidElement<{id?:string}>(child) && typeof child.type === 'string' && ['input','select','textarea'].includes(child.type) ? cloneElement(child,{id}) : child)}</div>;
+}
 function download(name: string, rows: unknown[][]) {
   const url = URL.createObjectURL(new Blob(["\ufeff" + rows.map(r => r.map(csvCell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" }));
   const a = document.createElement("a"); a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);

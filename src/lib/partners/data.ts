@@ -4,7 +4,10 @@ import type { Partner, PartnerEntry, PartnerOrder } from "@/types/partners";
 
 export async function listPartners(): Promise<Partner[]> {
   const snap = await requireDb().collection("partners").get();
-  return snap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Partner)).sort((a, b) => a.name.localeCompare(b.name));
+  return snap.docs.map(doc => {
+    const d=doc.data();
+    return { id:doc.id, name:String(d.name ?? doc.id), kind:d.kind ?? "other", active:d.active !== false, contact:String(d.contact ?? ""), accountReference:String(d.accountReference ?? ""), notes:String(d.notes ?? ""), integrationMode:"manual" } satisfies Partner;
+  }).sort((a, b) => a.name.localeCompare(b.name));
 }
 export async function partnerReportData() {
   const db = requireDb();
