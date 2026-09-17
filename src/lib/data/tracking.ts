@@ -21,6 +21,17 @@ import { normalizeNepaliMobile } from "@/config/nepal";
 
 const MAX_ORDERS = 25;
 
+/**
+ * How many of a customer's orders to read before sorting them here.
+ *
+ * Firestore would need a deployed composite index to combine the customerKey
+ * filter with an orderBy, and a page that silently breaks until someone
+ * remembers to run a deploy is a trap. An equality filter alone uses the
+ * automatic single-field index, so this works on any project from the first
+ * request. A customer has a handful of orders, never hundreds.
+ */
+const SCAN_LIMIT = 100;
+
 function iso(value: unknown): string {
   if (value && typeof value === "object" && "toDate" in value) {
     return (value as { toDate: () => Date }).toDate().toISOString();
@@ -43,11 +54,13 @@ export async function listOrdersForCustomer(
   const snap = await requireDb()
     .collection(COLLECTIONS.orders)
     .where("customerKey", "==", customerKey)
-    .orderBy("createdAt", "desc")
-    .limit(MAX_ORDERS)
+    .limit(SCAN_LIMIT)
     .get();
 
-  return snap.docs.map((doc) => projectOrder(rowToRaw(doc)));
+  return snap.docs
+    .map((doc) => projectOrder(rowToRaw(doc)))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, MAX_ORDERS);
 }
 
 export async function findOrderForCustomer(
