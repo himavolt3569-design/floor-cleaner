@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Scratch space: gitignored experiments must never pollute the lint signal.
+    ".tmp/**",
   ]),
 ]);
 
