@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatNpr } from "@/lib/utils/money";
 import { formatNepaliMobile } from "@/config/nepal";
 import type { PlacedOrder } from "@/types/checkout";
@@ -83,7 +84,14 @@ export function OrderSuccess({
       </div>
 
       <p className="mx-auto mt-6 max-w-[30rem] text-center text-[0.75rem] text-muted">
-        Keep your order number. We use it to find your order quickly.
+        Keep your order number. You can follow this order any time at{" "}
+        <Link
+          href="/track"
+          className="font-semibold text-charcoal underline underline-offset-4"
+        >
+          your orders
+        </Link>
+        .
       </p>
     </div>
   );

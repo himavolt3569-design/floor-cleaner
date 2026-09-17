@@ -7,8 +7,9 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // The admin and the API surface have no business in an index.
-        disallow: ["/admin", "/admin/", "/api/"],
+        // The admin, the API surface and each customer's own order pages have
+        // no business in an index.
+        disallow: ["/admin", "/admin/", "/api/", "/track", "/track/"],
       },
     ],
     sitemap: `${SITE.url}/sitemap.xml`,

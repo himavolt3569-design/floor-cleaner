@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Wordmark } from "./Wordmark";
 import { useLanguage } from "@/lib/store/language";
 import { useTranslations } from "@/components/layout/StoreCopyProvider";
@@ -140,6 +141,11 @@ export function SiteFooter({
           )}
 
           <ul className="flex items-center gap-5 text-[0.75rem]">
+            <li>
+              <Link href="/track" className="transition-colors duration-200 hover:text-paper">
+                Track an order
+              </Link>
+            </li>
             <li>
               <a href="/privacy" className="transition-colors duration-200 hover:text-paper">
                 Privacy
