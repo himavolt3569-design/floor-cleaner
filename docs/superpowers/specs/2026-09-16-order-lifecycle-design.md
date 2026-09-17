@@ -131,9 +131,12 @@ Cookie `__tmg_customer`: httpOnly, `secure` in production, `sameSite=lax`,
 `path=/`, 180 days, value is 32 random bytes base64url. Written by the order
 route on first order. Orders store it as `customerKey`.
 
-Each order also gets a `trackingToken`, 32 random bytes returned to the browser
-exactly once, of which only the SHA-256 hash is stored, in `trackingTokenHash`.
-Comparison is timing-safe.
+There is deliberately no tracking token. An earlier draft of this design gave
+each order a capability token to put in a link; that was dropped during phase 3
+because a token in a query string is a secret in a URL, and URLs leak through
+history, referrers and screenshots. It also bought nothing: the cookie covers
+the normal case, and the lookup below covers a lost cookie without any stored
+secret at all.
 
 Pages:
 
@@ -142,12 +145,16 @@ Pages:
 - `/track/[orderNumber]` — status timeline from `orderEvents` filtered to
   customer-safe event types, the delivery estimate, and the cancel control.
 
-Access to a single order is granted by any one of: the `customerKey` cookie
-matching, a valid `trackingToken` in the URL, or a successful lookup.
+Access to a single order is granted by either the `customerKey` cookie matching
+the order, or a fresh lookup proving order number plus mobile. The lookup is
+stateless: it returns that one order in the response and leaves nothing behind,
+so there is no session to forge and no link to leak.
 
 `POST /api/track/lookup` takes an order number plus a mobile number, and is rate
 limited to 5 per hour per IP so the order number space cannot be walked. On
-success it sets a short-lived scope cookie for that one order.
+success it returns that one order's projection directly. A wrong mobile and a
+missing order return the same message after the same work, so the response
+cannot be used to discover which order numbers exist.
 
 Every response is a trimmed projection built in `src/lib/data/tracking.ts`. The
 `meta` block holding IP and user agent is never included, and neither is any
@@ -266,7 +273,7 @@ plaintext is never sent to the browser under any circumstance. Saving records a
 
 ## Data model summary
 
-New fields on `orders`: `customerKey`, `trackingTokenHash`, `phoneVerified`,
+New fields on `orders`: `customerKey`, `phoneVerified`,
 `phoneVerifiedAt`, `deliveryAttempts`, `lastFailureReason`, `lastFailureNote`,
 `cancellation` (state, requestedBy, reason, decidedBy, decidedAt),
 `stockRestoredAt`, `needsAssignment`.
