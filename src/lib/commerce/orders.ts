@@ -48,7 +48,7 @@ export interface CreatedOrder {
  */
 export async function createOrder(
   input: CreateOrderInput,
-  meta: { ip: string; userAgent: string | null },
+  meta: { ip: string; userAgent: string | null; customerKey: string },
 ): Promise<CreatedOrder> {
   const db = requireDb();
 
@@ -205,6 +205,14 @@ export async function createOrder(
     tx.set(orderRef, {
       orderNumber,
       customerId: null,
+      // The browser that placed this order, so it can find it again without an
+      // account. Never returned to any client.
+      customerKey: meta.customerKey,
+      deliveryAttempts: 0,
+      lastFailureReason: null,
+      lastFailureNote: null,
+      cancellation: null,
+      stockRestoredAt: null,
       customerSnapshot: {
         fullName: input.address.fullName,
         mobile: input.address.mobile,

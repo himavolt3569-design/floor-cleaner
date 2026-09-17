@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import {
+  CUSTOMER_COOKIE,
+  customerCookieOptions,
+  isCustomerKey,
+  newCustomerKey,
+} from "@/lib/commerce/customer-key";
 import { createOrderSchema, fieldErrors } from "@/lib/validation/schemas";
 import { createOrder, type CreatedOrder } from "@/lib/commerce/orders";
 import {
@@ -55,12 +61,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // One key per browser, reused for every later order so the customer sees
+    // their whole history. A malformed cookie is replaced rather than trusted.
+    const existing = (await cookies()).get(CUSTOMER_COOKIE)?.value;
+    const customerKey = isCustomerKey(existing) ? existing : newCustomerKey();
+
     const userAgent = (await headers()).get("user-agent");
-    const order = await createOrder(parsed.data, { ip, userAgent });
+    const order = await createOrder(parsed.data, { ip, userAgent, customerKey });
 
     await completeIdempotency(idempotencyKey, order);
 
-    return NextResponse.json({ ok: true, order }, { headers: noStore });
+    const response = NextResponse.json({ ok: true, order }, { headers: noStore });
+    response.cookies.set(
+      CUSTOMER_COOKIE,
+      customerKey,
+      customerCookieOptions(process.env.NODE_ENV === "production"),
+    );
+    return response;
   } catch (error) {
     // Free the key so the customer can correct the problem and retry.
     if (idempotencyKey) await releaseIdempotency(idempotencyKey);
